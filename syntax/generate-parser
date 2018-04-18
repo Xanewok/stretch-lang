@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# This uses [BNFC](https://github.com/BNFC/bnfc) to generate
+# parser and lexer.
+bnfc -m --haskell stretch.cf
+make
+

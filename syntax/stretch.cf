@@ -1,0 +1,70 @@
+rules Program ::= [Item];
+
+rules Item ::= Stm | Decl ;
+separator Item "" ;
+
+comment "//" ;
+comment "/*" "*/" ;
+
+SLet. Stm ::= "let" Ident "=" Exp ";" ;
+SLetType. Stm ::= "let" Ident ":" Type "=" Exp ";" ;
+SDrop. Stm ::= "drop" Ident ";" ;
+SExp. Stm ::= Exp ";" ;
+terminator Stm ";" ;
+
+rules Boolean ::= "true"| "false" ;
+rules Literal ::= Integer | String | Boolean | "(" ")" ;
+
+{- Precedence rules -}
+rules BExp1 ::= BExp1 "==" BExp2
+              | BExp1 "!=" BExp2 ;
+rules BExp2 ::= BExp2 "<"  BExp3
+             |  BExp2 "<=" BExp3
+             |  BExp2 ">"  BExp3
+             |  BExp2 ">=" BExp3 ;
+rules BExp3 ::= "!" BExp3;
+rules BExp4 ::= AExp ;
+coercions BExp 4 ;
+
+rules AExp1 ::= AExp1 "+" AExp2
+             |  AExp1 "-" AExp2 ;
+rules AExp2 ::= AExp2 "*" AExp3
+             |  AExp2 "/" AExp3 ;
+rules AExp3 ::= "-" AExp3 ;
+rules AExp4 ::= Exp ;
+coercions AExp 4 ;
+
+ELit. Exp ::= Literal ;
+EIdent. Exp ::= Ident ;
+ECall. Exp ::= Exp "(" [ActualArg] ")" ;
+ECallPrint. Exp ::= "print" "(" ActualArg ")" ;
+EField. Exp ::= Exp "." Ident ;
+EStruct. Exp ::= Ident "{" [MemberInit] "}" ;
+EAssign. Exp ::= Exp "=" BExp ;
+
+MemberInit. MemberInit ::= Ident ":" Exp ;
+separator MemberInit "," ;
+
+ActualArg. ActualArg ::= Exp ;
+separator ActualArg "," ;
+FormalArg. FormalArg ::= Ident ":" Type ;
+separator FormalArg "," ;
+
+EIf. Exp ::= "if" BExp Block ;
+EIfElse. Exp ::= "if" BExp Block "else" Block ;
+EWhile. Exp ::= "while" BExp Block ;
+EBlock. Exp ::= Block ;
+EAnonFunc. Exp ::= "|" [FormalArg] "|" Block ;
+
+{- Final expression in a block is returned (hency why Block itself is Exp) -}
+rules Block ::= "{" [Item] "}" | "{" [Item] BExp "}" ;
+
+rules Type ::= Ident
+             | "(" ")" | "bool" | "int" | "string"
+             | "Fn" "(" [Type] ")" "->" Type ;
+separator Type "," ;
+
+DFunc. Decl ::= "fn" Ident "(" [FormalArg] ")" Block ;
+DFuncRet. Decl ::= "fn" Ident "(" [FormalArg] ")" "->" Type Block ;
+DStruct. Decl ::= "struct" Ident "{" [FormalArg] "}" ;
+terminator Decl "" ;
