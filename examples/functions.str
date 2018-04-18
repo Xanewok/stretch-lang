@@ -1,0 +1,32 @@
+// Functions as first-class values
+struct Fan {
+    age: int,
+    name: string,
+    cheer: Fn() -> (),
+    greets_with: Fn(string) -> string,
+}
+
+// Syntax for anonymous function construction
+let fan1: Fan = Fan {
+    age: 18,
+    name: "Michael",
+    cheer: || { print("Go team, go!"); },
+    greets_with: |name: string| {
+        "Hi " + name + ", my name is Michael!"
+    }
+};
+fan1.cheer();
+let msg = fan1.greets_with("Igor");
+
+fn generic_greeting() -> Fn(string) -> string {
+    // Closures will not be supported (?)
+    //let msg = "Hi, how are you?";
+    //|arg: string| { msg }
+
+    |arg: string| { "Hi, how are you?" }
+}
+
+// Functions as arguments
+fn indirect_call(arg: string, fun: Fn(string) -> string) -> string {
+    fun(arg)
+}

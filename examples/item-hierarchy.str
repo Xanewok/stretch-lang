@@ -1,0 +1,37 @@
+struct Empty {}
+
+struct MyStruct {
+    a: int,
+    b: bool,
+}
+
+fn some() {
+    struct Nested { a: int }
+    fn inner(arg: int) {
+        fn deeper(arg: string) {}
+    }
+
+    let anon = || { print("42"); };
+
+    let some = 5;
+}
+
+// Final expression in the block is returned as the value of an expression
+fn final_expr_returned() -> int {
+    print("Calculating the answer...");
+    42
+}
+
+fn other() {
+    fn nested(x: int) {
+        fn inner(x: string) {
+            print(x);
+        }
+
+        let some = 5;
+    }
+    print("5");
+}
+
+let top_level = 5;
+print(top_level);

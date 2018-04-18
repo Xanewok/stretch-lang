@@ -1,0 +1,39 @@
+// `if` is an expression, returns () unit value
+
+let unit: () = if false { };
+
+// `if-else` is an expression, returns value of the type returned in both arms
+
+let correct_answers =
+if 2 + 2 == 4 {
+    print("Everything seems to be in order...");
+    1
+} else {
+    0
+};
+
+print("Number of correct answers is: ");
+print(correct_answers); // 1
+
+// Same with `while` - evaluating the expression returns
+// last evaluated value from the block
+
+let bomb_timer = 6;
+let attempts_till_success = 5;
+let seconds_left = while attempts_till_success > 0 {
+    print("Trying to save the world...");
+
+    bomb_timer = bomb_timer - 1;
+    attempts_till_success = attempts_till_success - 1;
+
+    bomb_timer
+};
+
+print("Seconds left on the clock: ");
+print(bomb_timer); // 1!
+
+// a += 5 equivalent to { a = a + 5 }
+let a = 2;
+let b = { a = a + 2 };
+print(a); // 4
+print(b); // 4
