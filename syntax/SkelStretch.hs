@@ -37,22 +37,22 @@ transLiteral x = case x of
   Literal1 -> failure x
 transBExp :: BExp -> Result
 transBExp x = case x of
-  BExp11 bexp1 bexp2 -> failure x
-  BExp12 bexp1 bexp2 -> failure x
-  BExp21 bexp1 bexp2 -> failure x
-  BExp22 bexp1 bexp2 -> failure x
-  BExp23 bexp1 bexp2 -> failure x
-  BExp24 bexp1 bexp2 -> failure x
-  BExp31 bexp -> failure x
-  BExp4AExp aexp -> failure x
+  EqBExp bexp1 bexp2 -> failure x
+  NEqBExp bexp1 bexp2 -> failure x
+  LessBExp bexp1 bexp2 -> failure x
+  LEqBExp bexp1 bexp2 -> failure x
+  GreatBExp bexp1 bexp2 -> failure x
+  GEqBExp bexp1 bexp2 -> failure x
+  NotBExp bexp -> failure x
+  ArithExp aexp -> failure x
 transAExp :: AExp -> Result
 transAExp x = case x of
-  AExp11 aexp1 aexp2 -> failure x
-  AExp12 aexp1 aexp2 -> failure x
-  AExp21 aexp1 aexp2 -> failure x
-  AExp22 aexp1 aexp2 -> failure x
-  AExp31 aexp -> failure x
-  AExp4Exp exp -> failure x
+  AddAExp aexp1 aexp2 -> failure x
+  SubAExp aexp1 aexp2 -> failure x
+  MulAExp aexp1 aexp2 -> failure x
+  DivAExp aexp1 aexp2 -> failure x
+  NegAExp aexp -> failure x
+  GenAExp exp -> failure x
 transExp :: Exp -> Result
 transExp x = case x of
   ELit literal -> failure x

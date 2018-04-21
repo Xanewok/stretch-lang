@@ -188,10 +188,10 @@ BExp1 :: {
   BExp 
 }
 : BExp1 '==' BExp2 {
-  AbsStretch.BExp11 $1 $3 
+  AbsStretch.EqBExp $1 $3 
 }
 | BExp1 '!=' BExp2 {
-  AbsStretch.BExp12 $1 $3 
+  AbsStretch.NEqBExp $1 $3 
 }
 | BExp2 {
   $1 
@@ -201,16 +201,16 @@ BExp2 :: {
   BExp 
 }
 : BExp2 '<' BExp3 {
-  AbsStretch.BExp21 $1 $3 
+  AbsStretch.LessBExp $1 $3 
 }
 | BExp2 '<=' BExp3 {
-  AbsStretch.BExp22 $1 $3 
+  AbsStretch.LEqBExp $1 $3 
 }
 | BExp2 '>' BExp3 {
-  AbsStretch.BExp23 $1 $3 
+  AbsStretch.GreatBExp $1 $3 
 }
 | BExp2 '>=' BExp3 {
-  AbsStretch.BExp24 $1 $3 
+  AbsStretch.GEqBExp $1 $3 
 }
 | BExp3 {
   $1 
@@ -220,7 +220,7 @@ BExp3 :: {
   BExp 
 }
 : '!' BExp3 {
-  AbsStretch.BExp31 $2 
+  AbsStretch.NotBExp $2 
 }
 | BExp4 {
   $1 
@@ -230,7 +230,7 @@ BExp4 :: {
   BExp 
 }
 : AExp {
-  AbsStretch.BExp4AExp $1 
+  AbsStretch.ArithExp $1 
 }
 | '(' BExp ')' {
   $2 
@@ -247,10 +247,10 @@ AExp1 :: {
   AExp 
 }
 : AExp1 '+' AExp2 {
-  AbsStretch.AExp11 $1 $3 
+  AbsStretch.AddAExp $1 $3 
 }
 | AExp1 '-' AExp2 {
-  AbsStretch.AExp12 $1 $3 
+  AbsStretch.SubAExp $1 $3 
 }
 | AExp2 {
   $1 
@@ -260,10 +260,10 @@ AExp2 :: {
   AExp 
 }
 : AExp2 '*' AExp3 {
-  AbsStretch.AExp21 $1 $3 
+  AbsStretch.MulAExp $1 $3 
 }
 | AExp2 '/' AExp3 {
-  AbsStretch.AExp22 $1 $3 
+  AbsStretch.DivAExp $1 $3 
 }
 | AExp3 {
   $1 
@@ -273,7 +273,7 @@ AExp3 :: {
   AExp 
 }
 : '-' AExp3 {
-  AbsStretch.AExp31 $2 
+  AbsStretch.NegAExp $2 
 }
 | AExp4 {
   $1 
@@ -283,7 +283,7 @@ AExp4 :: {
   AExp 
 }
 : Exp {
-  AbsStretch.AExp4Exp $1 
+  AbsStretch.GenAExp $1 
 }
 | '(' AExp ')' {
   $2 

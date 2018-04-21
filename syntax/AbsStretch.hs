@@ -29,23 +29,23 @@ data Literal
   deriving (Eq, Ord, Show, Read)
 
 data BExp
-    = BExp11 BExp BExp
-    | BExp12 BExp BExp
-    | BExp21 BExp BExp
-    | BExp22 BExp BExp
-    | BExp23 BExp BExp
-    | BExp24 BExp BExp
-    | BExp31 BExp
-    | BExp4AExp AExp
+    = EqBExp BExp BExp
+    | NEqBExp BExp BExp
+    | LessBExp BExp BExp
+    | LEqBExp BExp BExp
+    | GreatBExp BExp BExp
+    | GEqBExp BExp BExp
+    | NotBExp BExp
+    | ArithExp AExp
   deriving (Eq, Ord, Show, Read)
 
 data AExp
-    = AExp11 AExp AExp
-    | AExp12 AExp AExp
-    | AExp21 AExp AExp
-    | AExp22 AExp AExp
-    | AExp31 AExp
-    | AExp4Exp Exp
+    = AddAExp AExp AExp
+    | SubAExp AExp AExp
+    | MulAExp AExp AExp
+    | DivAExp AExp AExp
+    | NegAExp AExp
+    | GenAExp Exp
   deriving (Eq, Ord, Show, Read)
 
 data Exp

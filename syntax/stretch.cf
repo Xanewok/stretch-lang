@@ -16,22 +16,22 @@ rules Boolean ::= "true"| "false" ;
 rules Literal ::= Integer | String | Boolean | "(" ")" ;
 
 {- Precedence rules -}
-rules BExp1 ::= BExp1 "==" BExp2
-              | BExp1 "!=" BExp2 ;
-rules BExp2 ::= BExp2 "<"  BExp3
-             |  BExp2 "<=" BExp3
-             |  BExp2 ">"  BExp3
-             |  BExp2 ">=" BExp3 ;
-rules BExp3 ::= "!" BExp3;
-rules BExp4 ::= AExp ;
+EqBExp.       BExp1 ::= BExp1 "==" BExp2 ;
+NEqBExp.      BExp1 ::= BExp1 "!=" BExp2 ;
+LessBExp.     BExp2 ::= BExp2 "<"  BExp3 ;
+LEqBExp.      BExp2 ::= BExp2 "<=" BExp3 ;
+GreatBExp.    BExp2 ::=  BExp2 ">"  BExp3 ;
+GEqBExp.      BExp2 ::= BExp2 ">=" BExp3 ;
+NotBExp.      BExp3 ::= "!" BExp3 ;
+ArithExp.     BExp4 ::= AExp ;
 coercions BExp 4 ;
 
-rules AExp1 ::= AExp1 "+" AExp2
-             |  AExp1 "-" AExp2 ;
-rules AExp2 ::= AExp2 "*" AExp3
-             |  AExp2 "/" AExp3 ;
-rules AExp3 ::= "-" AExp3 ;
-rules AExp4 ::= Exp ;
+AddAExp. AExp1 ::= AExp1 "+" AExp2 ;
+SubAExp. AExp1 ::= AExp1 "-" AExp2 ;
+MulAExp. AExp2 ::= AExp2 "*" AExp3 ;
+DivAExp. AExp2 ::= AExp2 "/" AExp3 ;
+NegAExp. AExp3 ::= "-" AExp3 ;
+GenAExp. AExp4 ::= Exp ;
 coercions AExp 4 ;
 
 ELit. Exp ::= Literal ;

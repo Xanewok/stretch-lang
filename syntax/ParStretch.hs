@@ -510,7 +510,7 @@ happyReduction_49 happy_x_3
 	 =  case happyOut42 happy_x_1 of { happy_var_1 -> 
 	case happyOut43 happy_x_3 of { happy_var_3 -> 
 	happyIn42
-		 (AbsStretch.BExp11 happy_var_1 happy_var_3
+		 (AbsStretch.EqBExp happy_var_1 happy_var_3
 	)}}
 
 happyReduce_50 = happySpecReduce_3  10# happyReduction_50
@@ -520,7 +520,7 @@ happyReduction_50 happy_x_3
 	 =  case happyOut42 happy_x_1 of { happy_var_1 -> 
 	case happyOut43 happy_x_3 of { happy_var_3 -> 
 	happyIn42
-		 (AbsStretch.BExp12 happy_var_1 happy_var_3
+		 (AbsStretch.NEqBExp happy_var_1 happy_var_3
 	)}}
 
 happyReduce_51 = happySpecReduce_1  10# happyReduction_51
@@ -537,7 +537,7 @@ happyReduction_52 happy_x_3
 	 =  case happyOut43 happy_x_1 of { happy_var_1 -> 
 	case happyOut44 happy_x_3 of { happy_var_3 -> 
 	happyIn43
-		 (AbsStretch.BExp21 happy_var_1 happy_var_3
+		 (AbsStretch.LessBExp happy_var_1 happy_var_3
 	)}}
 
 happyReduce_53 = happySpecReduce_3  11# happyReduction_53
@@ -547,7 +547,7 @@ happyReduction_53 happy_x_3
 	 =  case happyOut43 happy_x_1 of { happy_var_1 -> 
 	case happyOut44 happy_x_3 of { happy_var_3 -> 
 	happyIn43
-		 (AbsStretch.BExp22 happy_var_1 happy_var_3
+		 (AbsStretch.LEqBExp happy_var_1 happy_var_3
 	)}}
 
 happyReduce_54 = happySpecReduce_3  11# happyReduction_54
@@ -557,7 +557,7 @@ happyReduction_54 happy_x_3
 	 =  case happyOut43 happy_x_1 of { happy_var_1 -> 
 	case happyOut44 happy_x_3 of { happy_var_3 -> 
 	happyIn43
-		 (AbsStretch.BExp23 happy_var_1 happy_var_3
+		 (AbsStretch.GreatBExp happy_var_1 happy_var_3
 	)}}
 
 happyReduce_55 = happySpecReduce_3  11# happyReduction_55
@@ -567,7 +567,7 @@ happyReduction_55 happy_x_3
 	 =  case happyOut43 happy_x_1 of { happy_var_1 -> 
 	case happyOut44 happy_x_3 of { happy_var_3 -> 
 	happyIn43
-		 (AbsStretch.BExp24 happy_var_1 happy_var_3
+		 (AbsStretch.GEqBExp happy_var_1 happy_var_3
 	)}}
 
 happyReduce_56 = happySpecReduce_1  11# happyReduction_56
@@ -582,7 +582,7 @@ happyReduction_57 happy_x_2
 	happy_x_1
 	 =  case happyOut44 happy_x_2 of { happy_var_2 -> 
 	happyIn44
-		 (AbsStretch.BExp31 happy_var_2
+		 (AbsStretch.NotBExp happy_var_2
 	)}
 
 happyReduce_58 = happySpecReduce_1  12# happyReduction_58
@@ -596,7 +596,7 @@ happyReduce_59 = happySpecReduce_1  13# happyReduction_59
 happyReduction_59 happy_x_1
 	 =  case happyOut51 happy_x_1 of { happy_var_1 -> 
 	happyIn45
-		 (AbsStretch.BExp4AExp happy_var_1
+		 (AbsStretch.ArithExp happy_var_1
 	)}
 
 happyReduce_60 = happySpecReduce_3  13# happyReduction_60
@@ -622,7 +622,7 @@ happyReduction_62 happy_x_3
 	 =  case happyOut47 happy_x_1 of { happy_var_1 -> 
 	case happyOut48 happy_x_3 of { happy_var_3 -> 
 	happyIn47
-		 (AbsStretch.AExp11 happy_var_1 happy_var_3
+		 (AbsStretch.AddAExp happy_var_1 happy_var_3
 	)}}
 
 happyReduce_63 = happySpecReduce_3  15# happyReduction_63
@@ -632,7 +632,7 @@ happyReduction_63 happy_x_3
 	 =  case happyOut47 happy_x_1 of { happy_var_1 -> 
 	case happyOut48 happy_x_3 of { happy_var_3 -> 
 	happyIn47
-		 (AbsStretch.AExp12 happy_var_1 happy_var_3
+		 (AbsStretch.SubAExp happy_var_1 happy_var_3
 	)}}
 
 happyReduce_64 = happySpecReduce_1  15# happyReduction_64
@@ -649,7 +649,7 @@ happyReduction_65 happy_x_3
 	 =  case happyOut48 happy_x_1 of { happy_var_1 -> 
 	case happyOut49 happy_x_3 of { happy_var_3 -> 
 	happyIn48
-		 (AbsStretch.AExp21 happy_var_1 happy_var_3
+		 (AbsStretch.MulAExp happy_var_1 happy_var_3
 	)}}
 
 happyReduce_66 = happySpecReduce_3  16# happyReduction_66
@@ -659,7 +659,7 @@ happyReduction_66 happy_x_3
 	 =  case happyOut48 happy_x_1 of { happy_var_1 -> 
 	case happyOut49 happy_x_3 of { happy_var_3 -> 
 	happyIn48
-		 (AbsStretch.AExp22 happy_var_1 happy_var_3
+		 (AbsStretch.DivAExp happy_var_1 happy_var_3
 	)}}
 
 happyReduce_67 = happySpecReduce_1  16# happyReduction_67
@@ -674,7 +674,7 @@ happyReduction_68 happy_x_2
 	happy_x_1
 	 =  case happyOut49 happy_x_2 of { happy_var_2 -> 
 	happyIn49
-		 (AbsStretch.AExp31 happy_var_2
+		 (AbsStretch.NegAExp happy_var_2
 	)}
 
 happyReduce_69 = happySpecReduce_1  17# happyReduction_69
@@ -688,7 +688,7 @@ happyReduce_70 = happySpecReduce_1  18# happyReduction_70
 happyReduction_70 happy_x_1
 	 =  case happyOut52 happy_x_1 of { happy_var_1 -> 
 	happyIn50
-		 (AbsStretch.AExp4Exp happy_var_1
+		 (AbsStretch.GenAExp happy_var_1
 	)}
 
 happyReduce_71 = happySpecReduce_3  18# happyReduction_71

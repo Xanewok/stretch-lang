@@ -115,23 +115,23 @@ instance Print Literal where
 
 instance Print BExp where
   prt i e = case e of
-    BExp11 bexp1 bexp2 -> prPrec i 1 (concatD [prt 1 bexp1, doc (showString "=="), prt 2 bexp2])
-    BExp12 bexp1 bexp2 -> prPrec i 1 (concatD [prt 1 bexp1, doc (showString "!="), prt 2 bexp2])
-    BExp21 bexp1 bexp2 -> prPrec i 2 (concatD [prt 2 bexp1, doc (showString "<"), prt 3 bexp2])
-    BExp22 bexp1 bexp2 -> prPrec i 2 (concatD [prt 2 bexp1, doc (showString "<="), prt 3 bexp2])
-    BExp23 bexp1 bexp2 -> prPrec i 2 (concatD [prt 2 bexp1, doc (showString ">"), prt 3 bexp2])
-    BExp24 bexp1 bexp2 -> prPrec i 2 (concatD [prt 2 bexp1, doc (showString ">="), prt 3 bexp2])
-    BExp31 bexp -> prPrec i 3 (concatD [doc (showString "!"), prt 3 bexp])
-    BExp4AExp aexp -> prPrec i 4 (concatD [prt 0 aexp])
+    EqBExp bexp1 bexp2 -> prPrec i 1 (concatD [prt 1 bexp1, doc (showString "=="), prt 2 bexp2])
+    NEqBExp bexp1 bexp2 -> prPrec i 1 (concatD [prt 1 bexp1, doc (showString "!="), prt 2 bexp2])
+    LessBExp bexp1 bexp2 -> prPrec i 2 (concatD [prt 2 bexp1, doc (showString "<"), prt 3 bexp2])
+    LEqBExp bexp1 bexp2 -> prPrec i 2 (concatD [prt 2 bexp1, doc (showString "<="), prt 3 bexp2])
+    GreatBExp bexp1 bexp2 -> prPrec i 2 (concatD [prt 2 bexp1, doc (showString ">"), prt 3 bexp2])
+    GEqBExp bexp1 bexp2 -> prPrec i 2 (concatD [prt 2 bexp1, doc (showString ">="), prt 3 bexp2])
+    NotBExp bexp -> prPrec i 3 (concatD [doc (showString "!"), prt 3 bexp])
+    ArithExp aexp -> prPrec i 4 (concatD [prt 0 aexp])
 
 instance Print AExp where
   prt i e = case e of
-    AExp11 aexp1 aexp2 -> prPrec i 1 (concatD [prt 1 aexp1, doc (showString "+"), prt 2 aexp2])
-    AExp12 aexp1 aexp2 -> prPrec i 1 (concatD [prt 1 aexp1, doc (showString "-"), prt 2 aexp2])
-    AExp21 aexp1 aexp2 -> prPrec i 2 (concatD [prt 2 aexp1, doc (showString "*"), prt 3 aexp2])
-    AExp22 aexp1 aexp2 -> prPrec i 2 (concatD [prt 2 aexp1, doc (showString "/"), prt 3 aexp2])
-    AExp31 aexp -> prPrec i 3 (concatD [doc (showString "-"), prt 3 aexp])
-    AExp4Exp exp -> prPrec i 4 (concatD [prt 0 exp])
+    AddAExp aexp1 aexp2 -> prPrec i 1 (concatD [prt 1 aexp1, doc (showString "+"), prt 2 aexp2])
+    SubAExp aexp1 aexp2 -> prPrec i 1 (concatD [prt 1 aexp1, doc (showString "-"), prt 2 aexp2])
+    MulAExp aexp1 aexp2 -> prPrec i 2 (concatD [prt 2 aexp1, doc (showString "*"), prt 3 aexp2])
+    DivAExp aexp1 aexp2 -> prPrec i 2 (concatD [prt 2 aexp1, doc (showString "/"), prt 3 aexp2])
+    NegAExp aexp -> prPrec i 3 (concatD [doc (showString "-"), prt 3 aexp])
+    GenAExp exp -> prPrec i 4 (concatD [prt 0 exp])
 
 instance Print Exp where
   prt i e = case e of
