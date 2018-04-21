@@ -1,0 +1,41 @@
+# 6 points
++ 1 (single type)
++ 2 (variables, assignment)
++ 3 (if)
++ 4 (while/goto)
++ 5 (arithmetic)
++ 6 (comparisons)
+
+# 12 points
++ 7 (functions/procedures)
+
+# 14 points
++ 1 (two types)
++ 2 (arithmetic, comparisons)
++ 3 (while, if)
++ 4 (functions/procedures, rekurencja)
++ 5 (print)
+  6 a) (by-ref & by-value)
+    b) (for-loop)
++   c) (strings and casting)
++   d) (expressions with = ++ += itd)
+
+# 17 points
++ 7 (statically-typed)
+
+# 20 points
++ 8 (shadowing and static binding)
++ 9 (handling runtime errors)
++ 10 (value-returning-functions)
++ 11 a) (records)
+     b) (arrays/lists)
+     c) (dictionaries)
+     d) (tuples with assignment)
+     e) (break, continue)
++    f) (functions as parameters)
+?    g) (functions as a return-value, closures) (without closures)
++    h) (anonymous functions)
+
+# 24 points
++ 12 (nested functions with static binding)
++ 13 (one or two more from the list above)
