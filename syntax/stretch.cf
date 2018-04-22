@@ -1,70 +1,93 @@
-rules Program ::= [Item];
-
-rules Item ::= Stm | Decl ;
-separator Item "" ;
+ProgramEntry. Program ::= [Stm];
 
 comment "//" ;
 comment "/*" "*/" ;
 
-SLet. Stm ::= "let" Ident "=" Exp ";" ;
-SLetType. Stm ::= "let" Ident ":" Type "=" Exp ";" ;
-SDrop. Stm ::= "drop" Ident ";" ;
-SExp. Stm ::= Exp ";" ;
-terminator Stm ";" ;
+rules Boolean ::= "true" | "false" ;
 
-rules Boolean ::= "true"| "false" ;
-rules Literal ::= Integer | String | Boolean | "(" ")" ;
+LiteralUnit. Literal ::= "(" ")" ;
+rules Literal ::= Boolean | Integer | String ;
 
-{- Precedence rules -}
-EqBExp.       BExp1 ::= BExp1 "==" BExp2 ;
-NEqBExp.      BExp1 ::= BExp1 "!=" BExp2 ;
-LessBExp.     BExp2 ::= BExp2 "<"  BExp3 ;
-LEqBExp.      BExp2 ::= BExp2 "<=" BExp3 ;
-GreatBExp.    BExp2 ::=  BExp2 ">"  BExp3 ;
-GEqBExp.      BExp2 ::= BExp2 ">=" BExp3 ;
-NotBExp.      BExp3 ::= "!" BExp3 ;
-ArithExp.     BExp4 ::= AExp ;
-coercions BExp 4 ;
-
-AddAExp. AExp1 ::= AExp1 "+" AExp2 ;
-SubAExp. AExp1 ::= AExp1 "-" AExp2 ;
-MulAExp. AExp2 ::= AExp2 "*" AExp3 ;
-DivAExp. AExp2 ::= AExp2 "/" AExp3 ;
-NegAExp. AExp3 ::= "-" AExp3 ;
-GenAExp. AExp4 ::= Exp ;
-coercions AExp 4 ;
-
-ELit. Exp ::= Literal ;
-EIdent. Exp ::= Ident ;
-ECall. Exp ::= Exp "(" [ActualArg] ")" ;
-ECallPrint. Exp ::= "print" "(" ActualArg ")" ;
-EField. Exp ::= Exp "." Ident ;
-EStruct. Exp ::= Ident "{" [MemberInit] "}" ;
-EAssign. Exp ::= Exp "=" BExp ;
-
-MemberInit. MemberInit ::= Ident ":" Exp ;
-separator MemberInit "," ;
-
-ActualArg. ActualArg ::= Exp ;
-separator ActualArg "," ;
-FormalArg. FormalArg ::= Ident ":" Type ;
-separator FormalArg "," ;
-
-EIf. Exp ::= "if" BExp Block ;
-EIfElse. Exp ::= "if" BExp Block "else" Block ;
-EWhile. Exp ::= "while" BExp Block ;
-EBlock. Exp ::= Block ;
-EAnonFunc. Exp ::= "|" [FormalArg] "|" Block ;
-
-{- Final expression in a block is returned (hency why Block itself is Exp) -}
-rules Block ::= "{" [Item] "}" | "{" [Item] BExp "}" ;
-
-rules Type ::= Ident
-             | "(" ")" | "bool" | "int" | "string"
-             | "Fn" "(" [Type] ")" "->" Type ;
+{- Available types -}
+TyIdent.  Type ::= Ident ;
+TyUnit.   Type ::= "(" ")" ;
+TyBool.   Type ::= "bool" ;
+TyInt.    Type ::= "int" ;
+TyString. Type ::= "string" ;
+TyFun.    Type ::= "Fn" "(" [Type] ")" "->" Type ;
 separator Type "," ;
 
-DFunc. Decl ::= "fn" Ident "(" [FormalArg] ")" Block ;
-DFuncRet. Decl ::= "fn" Ident "(" [FormalArg] ")" "->" Type Block ;
-DStruct. Decl ::= "struct" Ident "{" [FormalArg] "}" ;
-terminator Decl "" ;
+{- Statements -}
+SFunc.     Stm ::= "fn" Ident "(" [FormalArg] ")" Block ;
+SFuncRet.  Stm ::= "fn" Ident "(" [FormalArg] ")" "->" Type Block ;
+SStruct.   Stm ::= "struct" Ident "{" [FormalArg] "}" ;
+SLet.      Stm ::= "let" Ident "=" Exp ";" ;
+SLetType.  Stm ::= "let" Ident ":" Type "=" Exp ";" ;
+SBlockExp. Stm ::= BlockExp ; {- !!! These do NOT require semicolons, more below -}
+SExp.      Stm ::= Exp ";" ;
+_. Stm ::= Stm ";" ;
+terminator Stm "" ;
+
+{-
+  Blocks are tricky! This rules introduces grammar ambiguity (and thus
+  reduce/reduce conflicts). Blocks can both serve as lexical scopes and
+  statements but they also are expressions (trailing expression is returned,
+  unit value () otherwise), however they are NOT separated by a semicolon.
+  Here, expression form is preferred - block exps will preferrably be parsed
+  as a part of a compound expression (`Exp`), instead of a `Stmt Exp`, e.g.
+  (i) { if true { 0 } else { 1 } + 2 } will be parsed as { Exp }
+  (ii) { { || { 42 } } () } will be parsed as { Exp }, where we call the
+  returned lambda function, and so on.
+-}
+rules Block ::= "{" [Stm] "}" | "{" [Stm] Exp "}" ;
+EBlock.    BlockExp ::= Block ;
+EIf.       BlockExp ::= "if" Exp Block ;
+EIfElse.   BlockExp ::= "if" Exp Block "else" Block ;
+EWhile.    BlockExp ::= "while" Exp Block ;
+terminator BlockExp "" ;
+
+{- Expressions -}
+EAssign. Exp ::= Ident "=" Exp ;
+
+EOr.    Exp1 ::= Exp1 "||"  Exp2 ;
+EAnd.   Exp2 ::= Exp2 "&&"  Exp3 ;
+EEq.    Exp3 ::= Exp3 "==" Exp4 ;
+ENEq.   Exp3 ::= Exp3 "!=" Exp4 ;
+ELess.  Exp3 ::= Exp3 "<"  Exp4 ;
+ELEq.   Exp3 ::= Exp3 "<=" Exp4 ;
+EGreat. Exp3 ::= Exp3 ">"  Exp4 ;
+EGEq.   Exp3 ::= Exp3 ">=" Exp4 ;
+EPlus.  Exp4 ::= Exp4 "+" Exp5 ;
+EMinus. Exp4 ::= Exp4 "-" Exp5 ;
+EMul.   Exp5 ::= Exp5 "*" Exp6 ;
+EDiv.   Exp5 ::= Exp5 "/" Exp6 ;
+ENot.   Exp6 ::= "!" Exp7 ;
+ENeg.   Exp6 ::= "-" Exp7 ;
+
+ELit.      Exp7 ::= Literal ;
+{- EIdent and EStruct introduce shift/reduce conflict - we (rightfully) always
+   prefer EStruct rule -}
+EIdent.    Exp7 ::= Ident ;
+EStruct.   Exp7 ::= Ident "{" [MemberInit] "}" ;
+ECall.     Exp7 ::= Exp7 "(" [Exp] ")" ;
+EPrint.    Exp7 ::= "print" "(" Exp ")" ;
+EField.    Exp7 ::= Exp7 "." Ident ;
+EBlockExp. Exp7 ::= BlockExp ;
+EAnonFun.  Exp7 ::= AnonFunc ;
+
+internal ETyped. Exp7 ::= "(" Exp ":" Type ")" ;
+
+coercions Exp 7 ;
+separator Exp "," ;
+
+{- NB: AnonArgs rule doesn't parse || {} as empty FormalArgs -}
+AnonEmpty. AnonFunc ::= "||" Block ;
+AnonArgs. AnonFunc ::= "|" [FormalArg] "|" Block ;
+
+{- Helper rules -}
+MemberExp. MemberInit ::= Ident ":" Exp ;
+separator MemberInit "," ;
+
+TypedIdent. FormalArg ::= Ident ":" Type ;
+separator FormalArg "," ;
+
