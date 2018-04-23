@@ -1,0 +1,12 @@
+let block_expr = {
+    fn decl1() {}
+    struct decl2 {}
+};
+
+let block_expr_with_ret_expr = {
+    fn decl1() {}
+    let decl2 = 5;
+    struct decl3 {}
+
+    true
+};

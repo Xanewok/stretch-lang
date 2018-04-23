@@ -1,0 +1,14 @@
+fn main() {
+
+}
+
+fn some() {
+	let ret = {
+		if true { () } else { () } -2
+	//  ^^^^^^^^^^^^^^^^^^^^^^^^ - `rustc` expects this to be statement
+	};
+
+	let or = { true } || { false };
+
+	let or_lambda = true || || {};
+}

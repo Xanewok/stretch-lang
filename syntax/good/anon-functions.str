@@ -1,0 +1,6 @@
+fn main() {
+	let or = true || false;
+	let anon = || { true } ;
+	let some = |arg: i32| { 42 } ;
+	let unit = || {};
+}

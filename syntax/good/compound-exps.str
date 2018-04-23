@@ -1,0 +1,14 @@
+fn fun() -> u32 {
+
+while while true {} {}
+
+(if false { 0 } else { 1 }) + 2;
+
+2 + if false { 0 } else { 1 };
+
+let a = 1;
+let b = 2;
+
+if a > 2 && b < 5 { }
+
+}

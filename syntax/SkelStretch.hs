@@ -14,83 +14,78 @@ transIdent x = case x of
   Ident string -> failure x
 transProgram :: Program -> Result
 transProgram x = case x of
-  Program1 items -> failure x
-transItem :: Item -> Result
-transItem x = case x of
-  ItemStm stm -> failure x
-  ItemDecl decl -> failure x
-transStm :: Stm -> Result
-transStm x = case x of
-  SLet ident exp -> failure x
-  SLetType ident type_ exp -> failure x
-  SDrop ident -> failure x
-  SExp exp -> failure x
+  ProgramEntry stms -> failure x
 transBoolean :: Boolean -> Result
 transBoolean x = case x of
   Boolean_true -> failure x
   Boolean_false -> failure x
 transLiteral :: Literal -> Result
 transLiteral x = case x of
+  LiteralUnit -> failure x
+  LiteralBoolean boolean -> failure x
   LiteralInteger integer -> failure x
   LiteralString string -> failure x
-  LiteralBoolean boolean -> failure x
-  Literal1 -> failure x
-transBExp :: BExp -> Result
-transBExp x = case x of
-  EqBExp bexp1 bexp2 -> failure x
-  NEqBExp bexp1 bexp2 -> failure x
-  LessBExp bexp1 bexp2 -> failure x
-  LEqBExp bexp1 bexp2 -> failure x
-  GreatBExp bexp1 bexp2 -> failure x
-  GEqBExp bexp1 bexp2 -> failure x
-  NotBExp bexp -> failure x
-  ArithExp aexp -> failure x
-transAExp :: AExp -> Result
-transAExp x = case x of
-  AddAExp aexp1 aexp2 -> failure x
-  SubAExp aexp1 aexp2 -> failure x
-  MulAExp aexp1 aexp2 -> failure x
-  DivAExp aexp1 aexp2 -> failure x
-  NegAExp aexp -> failure x
-  GenAExp exp -> failure x
-transExp :: Exp -> Result
-transExp x = case x of
-  ELit literal -> failure x
-  EIdent ident -> failure x
-  ECall exp actualargs -> failure x
-  ECallPrint actualarg -> failure x
-  EField exp ident -> failure x
-  EStruct ident memberinits -> failure x
-  EAssign exp bexp -> failure x
-  EIf bexp block -> failure x
-  EIfElse bexp block1 block2 -> failure x
-  EWhile bexp block -> failure x
-  EBlock block -> failure x
-  EAnonFunc formalargs block -> failure x
-transMemberInit :: MemberInit -> Result
-transMemberInit x = case x of
-  MemberInit ident exp -> failure x
-transActualArg :: ActualArg -> Result
-transActualArg x = case x of
-  ActualArg exp -> failure x
-transFormalArg :: FormalArg -> Result
-transFormalArg x = case x of
-  FormalArg ident type_ -> failure x
-transBlock :: Block -> Result
-transBlock x = case x of
-  Block1 items -> failure x
-  Block2 items bexp -> failure x
 transType :: Type -> Result
 transType x = case x of
-  TypeIdent ident -> failure x
-  Type1 -> failure x
-  Type_bool -> failure x
-  Type_int -> failure x
-  Type_string -> failure x
-  Type2 types type_ -> failure x
-transDecl :: Decl -> Result
-transDecl x = case x of
-  DFunc ident formalargs block -> failure x
-  DFuncRet ident formalargs type_ block -> failure x
-  DStruct ident formalargs -> failure x
+  TyIdent ident -> failure x
+  TyUnit -> failure x
+  TyBool -> failure x
+  TyInt -> failure x
+  TyString -> failure x
+  TyFun types type_ -> failure x
+transStm :: Stm -> Result
+transStm x = case x of
+  SFunc ident formalargs block -> failure x
+  SFuncRet ident formalargs type_ block -> failure x
+  SStruct ident formalargs -> failure x
+  SLet ident exp -> failure x
+  SLetType ident type_ exp -> failure x
+  SBlockExp blockexp -> failure x
+  SExp exp -> failure x
+transBlock :: Block -> Result
+transBlock x = case x of
+  Block1 stms -> failure x
+  Block2 stms exp -> failure x
+transBlockExp :: BlockExp -> Result
+transBlockExp x = case x of
+  EBlock block -> failure x
+  EIf exp block -> failure x
+  EIfElse exp block1 block2 -> failure x
+  EWhile exp block -> failure x
+transExp :: Exp -> Result
+transExp x = case x of
+  EAssign ident exp -> failure x
+  EOr exp1 exp2 -> failure x
+  EAnd exp1 exp2 -> failure x
+  EEq exp1 exp2 -> failure x
+  ENEq exp1 exp2 -> failure x
+  ELess exp1 exp2 -> failure x
+  ELEq exp1 exp2 -> failure x
+  EGreat exp1 exp2 -> failure x
+  EGEq exp1 exp2 -> failure x
+  EPlus exp1 exp2 -> failure x
+  EMinus exp1 exp2 -> failure x
+  EMul exp1 exp2 -> failure x
+  EDiv exp1 exp2 -> failure x
+  ENot exp -> failure x
+  ENeg exp -> failure x
+  ELit literal -> failure x
+  EIdent ident -> failure x
+  EStruct ident memberinits -> failure x
+  ECall exp exps -> failure x
+  EPrint exp -> failure x
+  EField exp ident -> failure x
+  EBlockExp blockexp -> failure x
+  EAnonFun anonfunc -> failure x
+  ETyped exp type_ -> failure x
+transAnonFunc :: AnonFunc -> Result
+transAnonFunc x = case x of
+  AnonEmpty block -> failure x
+  AnonArgs formalargs block -> failure x
+transMemberInit :: MemberInit -> Result
+transMemberInit x = case x of
+  MemberExp ident exp -> failure x
+transFormalArg :: FormalArg -> Result
+transFormalArg x = case x of
+  TypedIdent ident type_ -> failure x
 

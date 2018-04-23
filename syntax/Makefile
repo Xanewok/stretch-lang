@@ -7,5 +7,5 @@ clean:
 	-rm -f *.log *.aux *.hi *.o *.dvi
 
 distclean: clean
-	-rm -f DocStretch.* LexStretch.* ParStretch.* LayoutStretch.* SkelStretch.* PrintStretch.* TestStretch.* AbsStretch.* TestStretch ErrM.* SharedString.* ComposOp.* stretch.dtd XMLStretch.* Makefile*
+	-rm -f DocStretch.* LexStretch.* ParStretch.* LayoutStretch.* SkelStretch.* PrintStretch.* TestStretch.* AbsStretch.* TestStretch ErrM.* SharedString.* ComposOp.* Stretch.dtd XMLStretch.* Makefile*
 	

@@ -1,0 +1,15 @@
+fn main() {
+	let a = 5;
+	let b = 10;
+
+	while a > 5 { a = a - 1; }
+}
+
+fn other() {
+	let a = 5;
+	let b = 10;
+
+	// While-exprs not separated by comma
+	while (a > 5) {}
+	while (a > 5) {}
+}

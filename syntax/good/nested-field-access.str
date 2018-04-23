@@ -1,0 +1,12 @@
+struct A {
+	b: bool
+}
+
+struct B {
+	a: A
+}
+
+fn main() {
+	let b = B { a: A { b: true } };
+	b.a.b;
+}
