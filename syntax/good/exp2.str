@@ -1,0 +1,7 @@
+struct MyStruct {
+	a: bool
+}
+
+fn main() {
+	MyStruct{a: true}.a;
+}
