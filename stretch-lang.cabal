@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6acb9869a44f78aaa954e1e0e7f3ea70de277534ed6385642674d693b22a8dc6
+-- hash: 89b95a03961c21ecf00fb62b4c34dc1a6d3af87f717bc0df3046cc8d12252866
 
 name:           stretch-lang
 version:        0.1.0.0
@@ -52,7 +52,7 @@ executable stretchi
   main-is: Main.hs
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       array
     , base >=4.7 && <5
