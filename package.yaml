@@ -25,6 +25,7 @@ dependencies:
 - directory
 - containers
 - mtl
+- transformers
 
 custom-setup:
   dependencies:

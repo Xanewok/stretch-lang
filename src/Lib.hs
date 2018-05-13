@@ -3,18 +3,24 @@ module Lib
     ) where
 
 import Control.Monad.Reader
+import Control.Monad.Trans
+import Control.Monad.State
 
 import Data.Map (Map)
 import Data.Typeable(Typeable)
 import qualified Data.Map as Map
+
+import Text.Show.Functions
 
 import BNFC.AbsStretch
 import BNFC.PrintStretch
 
 interpret :: Program -> IO ()
 interpret (ProgramEntry stmts) =
-    mapM_ (`evalStmt` initialState) stmts
+    (evalStateT $ mapM_ evalStmt stmts) initialState
 
+initialState :: MyEnv
+initialState = (Map.empty, Map.empty)
 
 toBool :: Boolean -> Bool
 toBool Boolean_true = True
@@ -27,45 +33,65 @@ litToValue lit = case lit of
     LiteralInteger int -> Int int
     LiteralString str -> Str str
 
-type Loc = Int
-
--- FIXME: Loc -> actual value
 data Value
     = Unit ()
     | Boolean Bool
     | Int Integer
     | Str String
+    | Record (Map Ident Value)
+    | Function ([Value] -> Value)
     deriving Show
 
-type Env = Map String Loc
+type Loc = Int
+
+type Env = Map Ident Loc
 type Store = Map Loc Value
 
-type State = (Env, Store) -- FIXME: correct?
-initialState :: State
-initialState = (Map.empty, Map.empty)
+type MyEnv = (Env, Store)
+
+type ReaderIO a = ReaderT MyEnv IO a
+type StateIO a = StateT MyEnv IO a
 
 alloc :: Store -> Loc
 alloc m = if Map.null m then 0
           else let (i, w) = Map.findMax m in i+1
 
 -- FIXME: expand stub impls
-evalStmt :: Stm -> State -> IO State
-evalStmt (SExp expr) state = do
-    print expr -- DEBUG
-    (state, value) <- (evalExp expr state)
-    print value -- DEBUG
-    return state
+evalStmt :: Stm -> StateIO ()
+evalStmt (SExp expr) = do
+    liftIO $ print expr -- DEBUG
+    value <- evalExp expr
+    liftIO $ print value -- DEBUG
 
-evalExp :: Exp -> State -> IO (State, Value)
-evalExp (ELit lit) state = return (state, litToValue lit)
+evalStmt stm @ (SLet ident expr) = do
+    liftIO $ print stm -- DEBUG
 
-evalExp (EDiv e1 e2) state0 = do
-    (state1, value1) <- evalExp e1 state0
-    (state2, value2) <- evalExp e2 state1
+    value <- evalExp expr
+
+    (env, store) <- get -- DEBUG
+    liftIO $ print env -- DEBUG
+    liftIO $ print store -- DEBUG
+
+    modify (\(env, store) ->
+        let newloc = alloc store in
+            (Map.insert ident newloc env,
+             Map.insert newloc value store)
+        )
+
+    (env, store) <- get -- DEBUG
+    liftIO $ print env -- DEBUG
+    liftIO $ print store -- DEBUG
+
+evalExp :: Exp -> StateIO Value
+evalExp (ELit lit) = return (litToValue lit)
+
+evalExp (EDiv e1 e2) = do
+    value1 <- evalExp e1
+    value2 <- evalExp e2
 
     case (value1, value2) of
         (Int int1, Int 0) -> fail "Division by 0"
-        (Int int1, Int int2) -> return (state2, Int (int1 `div` int2))
+        (Int int1, Int int2) -> return (Int (int1 `div` int2))
         _ -> fail "Incompatible types"
 
 -- scopes (manages below?)

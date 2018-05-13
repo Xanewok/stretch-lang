@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 26c47fb56940a12deb306bddf40bf5e0b50f7c5ab7fa96ecf158a9fb4d52c7d1
+-- hash: 46cf1bc2ef96d68cee739772342909aa5034582f0caddc3340320205e7779054
 
 name:           stretch-lang
 version:        0.1.0.0
@@ -41,6 +41,7 @@ library
     , containers
     , directory
     , mtl
+    , transformers
   exposed-modules:
       BNFC.AbsStretch
       BNFC.ErrM
@@ -64,6 +65,7 @@ executable stretchi
     , directory
     , mtl
     , stretch-lang
+    , transformers
   other-modules:
       Paths_stretch_lang
   default-language: Haskell2010
@@ -81,6 +83,7 @@ test-suite stretch-lang-test
     , directory
     , mtl
     , stretch-lang
+    , transformers
   other-modules:
       Paths_stretch_lang
   default-language: Haskell2010
