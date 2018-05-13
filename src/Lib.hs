@@ -2,6 +2,8 @@ module Lib
     ( interpret
     ) where
 
+import Control.Monad.Reader
+
 import Data.Map (Map)
 import Data.Typeable(Typeable)
 import qualified Data.Map as Map
