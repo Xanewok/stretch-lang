@@ -21,6 +21,14 @@ description:         Please see the README on Github at <https://github.com/Xane
 
 dependencies:
 - base >= 4.7 && < 5
+- array
+
+custom-setup:
+  dependencies:
+    - base >= 4.7 && < 5
+    - Cabal >= 1.10
+    - process
+    - directory
 
 library:
   source-dirs: src

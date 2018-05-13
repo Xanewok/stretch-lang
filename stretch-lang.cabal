@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0aedeb1b7a17f092d1a1ce00dc5370e0aa19bf247e4198eeb2a156d0c4f7f977
+-- hash: 1a0db90e78a3d6a2f85924c1b324d5e9fea4c63488cb3b1b1a47f080f5ccea75
 
 name:           stretch-lang
 version:        0.1.0.0
@@ -14,7 +14,7 @@ maintainer:     Xanewok@gmail.com
 copyright:      2018 Igor Matuszewski
 license:        MIT
 license-file:   LICENSE
-build-type:     Simple
+build-type:     Custom
 cabal-version:  >= 1.10
 
 extra-source-files:
@@ -25,12 +25,24 @@ source-repository head
   type: git
   location: https://github.com/Xanewok/stretch-lang
 
+custom-setup
+  setup-depends:
+      Cabal >=1.10
+    , base >=4.7 && <5
+    , directory
+    , process
+
 library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
   exposed-modules:
+      BNFC.AbsStretch
+      BNFC.ErrM
+      BNFC.LexStretch
+      BNFC.ParStretch
       Lib
   other-modules:
       Paths_stretch_lang
@@ -42,7 +54,8 @@ executable stretch-lang-exe
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , stretch-lang
   other-modules:
       Paths_stretch_lang
@@ -55,7 +68,8 @@ test-suite stretch-lang-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      array
+    , base >=4.7 && <5
     , stretch-lang
   other-modules:
       Paths_stretch_lang

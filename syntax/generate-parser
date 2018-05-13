@@ -10,3 +10,5 @@ cp ./BNFC/ErrM.hs ../src/BNFC/ErrM.hs
 cp ./BNFC/AbsStretch.hs ../src/BNFC/AbsStretch.hs
 cp ./BNFC/LexStretch.hs ../src/BNFC/LexStretch.hs
 cp ./BNFC/ParStretch.hs ../src/BNFC/ParStretch.hs
+
+make distclean
