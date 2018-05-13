@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1a0db90e78a3d6a2f85924c1b324d5e9fea4c63488cb3b1b1a47f080f5ccea75
+-- hash: 6acb9869a44f78aaa954e1e0e7f3ea70de277534ed6385642674d693b22a8dc6
 
 name:           stretch-lang
 version:        0.1.0.0
@@ -48,7 +48,7 @@ library
       Paths_stretch_lang
   default-language: Haskell2010
 
-executable stretch-lang-exe
+executable stretchi
   main-is: Main.hs
   hs-source-dirs:
       app
