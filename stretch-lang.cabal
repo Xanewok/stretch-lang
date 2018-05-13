@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c19b054d02c7270208660bb4db3eb95c03b6b5ea49d9352ae3e10577082076b1
+-- hash: a182995c98ec37808abbb752312048666623795f9eb7ec2b04f46a1bc08d2491
 
 name:           stretch-lang
 version:        0.1.0.0
@@ -38,12 +38,14 @@ library
   build-depends:
       array
     , base >=4.7 && <5
+    , containers
     , directory
   exposed-modules:
       BNFC.AbsStretch
       BNFC.ErrM
       BNFC.LexStretch
       BNFC.ParStretch
+      BNFC.PrintStretch
       Lib
   other-modules:
       Paths_stretch_lang
@@ -57,6 +59,7 @@ executable stretchi
   build-depends:
       array
     , base >=4.7 && <5
+    , containers
     , directory
     , stretch-lang
   other-modules:
@@ -72,6 +75,7 @@ test-suite stretch-lang-test
   build-depends:
       array
     , base >=4.7 && <5
+    , containers
     , directory
     , stretch-lang
   other-modules:
