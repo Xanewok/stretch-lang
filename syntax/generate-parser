@@ -2,6 +2,11 @@
 
 # This uses [BNFC](https://github.com/BNFC/bnfc) to generate
 # parser and lexer.
-bnfc -m --haskell --ghc Stretch.cf
+bnfc -m -p BNFC --haskell --ghc Stretch.cf
 make
 
+mkdir ../src/BNFC 2>/dev/null
+cp ./BNFC/ErrM.hs ../src/BNFC/ErrM.hs
+cp ./BNFC/AbsStretch.hs ../src/BNFC/AbsStretch.hs
+cp ./BNFC/LexStretch.hs ../src/BNFC/LexStretch.hs
+cp ./BNFC/ParStretch.hs ../src/BNFC/ParStretch.hs
