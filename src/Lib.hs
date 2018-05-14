@@ -94,10 +94,24 @@ evalBlock (Block2 stmts expr) = interpretStmts stmts >> (evalExp expr)
 
 evalBlockExp :: BlockExp -> StateIO Value
 evalBlockExp (EBlock block) = evalBlock block
--- TODO: rest
--- evalBlockExp (EIf Exp Block)
--- evalBlockExp (EIfElse Exp Block Block)
--- evalBlockExp (EWhile Exp Block)
+-- TODO: reset block env after quitting blocks
+evalBlockExp (EIf expr block) = do
+    value <- evalExp expr
+    case value of
+        Boolean val -> if val then evalBlock block else return $ Unit ()
+        _ -> fail "mismatched types: `if` guard clause not a boolean"
+-- TODO: reset block env after quitting blocks
+evalBlockExp (EIfElse expr ifBlock elseBlock) = do
+    value <- evalExp expr
+    case value of
+        Boolean val -> evalBlock $ if val then ifBlock else elseBlock
+        _ -> fail "mismatched types: `if` guard clause not a boolean"
+-- TODO: reset block env after quitting blocks
+evalBlockExp while @ (EWhile expr block) = do
+    value <- evalExp expr
+    case value of
+        Boolean val -> if val then evalBlockExp while else return $ Unit ()
+        _ -> fail "mismatched types: `if` guard clause not a boolean"
 
 evalExp :: Exp -> StateIO Value
 evalExp (ELit lit) = return (litToValue lit)
