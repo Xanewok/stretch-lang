@@ -44,7 +44,7 @@ data Value
     | Int Integer
     | Str String
     | Record (Map Ident Value)
-    | Function ([Value] -> Value)
+    | Function Env Block
     deriving Show
 
 instance Eq Value where
@@ -60,10 +60,12 @@ type Loc = Int
 type Env = Map Ident Loc
 type Store = Map Loc Value
 
+-- TODO: Unify other decls with types
+type FuncDecl = Map Ident ([FormalArg], Type)
+
+type MyEnv = (Env, Store, RecordFields) -- TODO: remove and replace with type definitions
 -- TODO: Move to Types to be used with TypedIdent Ident Type
 type RecordFields = Map Ident (Set Ident)
-
-type MyEnv = (Env, Store, RecordFields) -- TODO: reorganize record fields
 
 type ReaderIO a = ReaderT MyEnv IO a
 type StateIO a = StateT MyEnv IO a
@@ -72,10 +74,36 @@ alloc :: Store -> Loc
 alloc m = if Map.null m then 0
           else let (i, w) = Map.findMax m in i+1
 
--- FIXME: expand stub impls
+allocWithVal :: Ident -> Value -> StateIO Loc
+allocWithVal ident value = do
+    (_, store, _) <- get
+
+    let newloc = alloc store in do
+        modify (\(env, store, fields) ->
+            (Map.insert ident newloc env,
+                Map.insert newloc value store,
+                fields))
+        return newloc
+
 evalStmt :: Stm -> StateIO ()
 
--- TODO:
+-- TODO
+evalStmt (SFunc ident args block) = do
+    -- TODO: Introduce new type definition for the function
+
+    -- Crucial for implementing recursion - allocate an identifier in the env
+    -- first for ourself, so the stored function value can refer to itself
+    loc <- allocWithVal ident (Unit ())
+
+    -- Replace the dummy value with our function, storing previously modified env
+    modify(\(env, store, fields) ->
+        let func = Function env block in
+            let store' = Map.insert loc func store in
+                (env, store', fields)
+        )
+
+-- TODO: Implement and verify type mismatch
+evalStmt (SFuncRet ident args typ block) = evalStmt (SFunc ident args block)
 evalStmt stm @ (SStruct ident args) = do
     liftIO $ print stm -- DEBUG
 
@@ -88,13 +116,6 @@ evalStmt stm @ (SStruct ident args) = do
 
     (_, _, fields) <- get -- DEBUG
     liftIO $ putStrLn $ "Fields after modifying: " ++ (show fields) -- DEBUG
-
-evalStmt (SBlockExp blockExp) = evalBlockExp blockExp >> return ()
-
-evalStmt (SExp expr) = do
-    liftIO $ print expr -- DEBUG
-    value <- evalExp expr
-    liftIO $ print value -- DEBUG
 
 evalStmt stm @ (SLet ident expr) = do
     liftIO $ print stm -- DEBUG
@@ -116,6 +137,17 @@ evalStmt stm @ (SLet ident expr) = do
     liftIO $ print env -- DEBUG
     liftIO $ print store -- DEBUG
 
+-- TODO: Check type mismatch
+evalStmt (SLetType ident typ expr) = evalStmt (SLet ident expr)
+
+evalStmt (SBlockExp blockExp) = evalBlockExp blockExp >> return ()
+
+evalStmt (SExp expr) = do
+    liftIO $ print expr -- DEBUG
+    value <- evalExp expr
+    liftIO $ print value -- DEBUG
+
+-- TODO: Scopes with STATIC binding (create a fresh copy for nested exprs)
 evalBlock :: Block -> StateIO Value
 evalBlock (Block1 stmts) = interpretStmts stmts >> (return $ Unit ())
 evalBlock (Block2 stmts expr) = interpretStmts stmts >> (evalExp expr)
@@ -181,7 +213,7 @@ evalExp (EEq e1 e2) = do
     value2 <- evalExp e2
 
     val <- case (value1, value2) of
-        (Function f, Function g) -> fail "Can't compare function values"
+        (Function _ _, Function _ _) -> fail "Can't compare function values"
         (a, b) -> return $ a == b
 
     return $ Boolean val
@@ -288,7 +320,26 @@ evalExp (EStruct ident members) = do
     liftIO $ putStrLn $ "Evaluated struct: " ++ (show struct) -- DEBUG
 
     return $ Record (Map.fromList struct)
--- evalExp(ECall Exp [Exp]) =
+
+evalExp (ECall funcExp args) = do
+    func <- evalExp funcExp
+    Function funcEnv block <- case func of
+        f @(Function _ _) -> return f
+        _ -> fail $ "Expression " ++ (show evalExp) ++ " is not a function"
+
+    -- TODO: Check types of called function and arguments
+    evaluatedArgs <- mapM evalExp args
+    -- TODO: pass args - needs modifying environment - needs still knowing func type (idents)
+
+    (env, store, fields) <- get
+
+    -- Evaluate function using function's static binding environment
+    (result, (_, changedStore, _)) <- liftIO $ runStateT (evalBlock block) (funcEnv, store, fields)
+
+    -- Functions can modify state - store modified state, resulting from evaluating the function call
+    modify(\(env, store, fields) -> (env, changedStore, fields))
+
+    return result
 
 evalExp (EIdent ident) = do
     (env, store, fields) <- get -- DEBUG
@@ -317,73 +368,10 @@ evalExp (EField expr ident) = do
             Nothing -> fail $ (show ident) ++ " is not a field on structure " ++ (show r)
         _ -> fail $ (show expr) ++ " is not a record"
 evalExp (EBlockExp blockExp) = evalBlockExp blockExp
--- evalExp (EAnonFun AnonFunc) =
 
--- scopes (manages below?)
--- variable bindings -- holds values of a given type
--- function bindings -- holds function of a given type (no closures for now)
+-- TODO Check types, make sure this is okay
+evalExp (EAnonFun (AnonEmpty block)) = evalExp (EAnonFun (AnonArgs [] block))
+evalExp (EAnonFun (AnonArgs args block)) = do
+    (env, _, _) <- get
 
--- expressions with side effects - evaluating expressions yields us another state
--- evaluting from left to right
-
-
-
-
--- type Var = String
-
--- infixl 6 :+:, :-:
--- infixl 7 :*:, :/:
-
--- data Exp
---     = C Int        -- constant
---     | V Var        -- variable
---     | Exp :+: Exp  -- addition
---     | Exp :-: Exp  -- subtraction
---     | Exp :*: Exp  -- multiplication
---     | Exp :/: Exp  -- division
-
--- infix 1 :=
-
--- data Stmt
---     = Var := Exp      -- assignment
---     | While Exp Stmt  -- loop
---     | Seq [Stmt]      -- sequence
-
--- type Prog = Stmt
-
--- type Val = Int
--- type Store = [(Var, Val)]
-
--- eval :: Exp -> Store -> Val
--- eval (C n) r       = n
--- eval (V x) r       = case lookup x r of
---                        Nothing -> error ("unbound variable `" ++ x ++ "'")
---                        Just v  -> v
--- eval (e1 :+: e2) r = eval e1 r + eval e2 r
--- eval (e1 :-: e2) r = eval e1 r - eval e2 r
--- eval (e1 :*: e2) r = eval e1 r * eval e2 r
--- eval (e1 :/: e2) r = eval e1 r `div` eval e2 r
-
--- exec :: Stmt -> Store -> Store
--- exec (x := e) r                    = (x, eval e r) : r
--- exec (While e s) r | eval e r /= 0 = exec (Seq [s, While e s]) r
---                    | otherwise     = r
--- exec (Seq []) r                    = r
--- exec (Seq (s : ss)) r              = exec (Seq ss) (exec s r)
-
--- run :: Prog -> Store -> Store
--- run p r = nubBy ((==) `on` fst) (exec p r)
-
--- fib :: Prog
--- fib = Seq
---   [ "x" := C 0
---   , "y" := C 1
---   , While (V "n") $ Seq
---       [ "z" := V "x" :+: V "y"
---       , "x" := V "y"
---       , "y" := V "z"
---       , "n" := V "n" :-: C 1
---       ]
---   ]
-
--- main = print $ lookup "x" $ run fib [("n", 25)]
+    return $ Function env block
