@@ -45,6 +45,14 @@ data Value
     | Function ([Value] -> Value)
     deriving Show
 
+instance Eq Value where
+    Unit () == Unit () = True
+    Boolean b1 == Boolean b2 = b1 == b2
+    Int i1 == Int i2 = i1 == i2
+    Str s1 == Str s2 = s1 == s2
+    Record r1 == Record r2 = r1 == r2 -- TODO: Structural equivalence? Need to include type system info
+
+
 type Loc = Int
 
 type Env = Map Ident Loc
@@ -114,7 +122,124 @@ evalBlockExp while @ (EWhile expr block) = do
         _ -> fail "mismatched types: `if` guard clause not a boolean"
 
 evalExp :: Exp -> StateIO Value
-evalExp (ELit lit) = return (litToValue lit)
+evalExp (EAssign ident expr) = do
+    value <- evalExp expr
+    liftIO $ print value -- DEBUG
+
+    (env, store) <- get -- DEBUG
+    loc <- case Map.lookup ident env of
+        Just x -> return x
+        Nothing -> fail $ "trying to assign to an unbound variable: " ++ (show ident)
+
+    modify(\(env, store) ->
+        (env, Map.insert loc value store))
+
+    (env, store) <- get -- DEBUG
+    liftIO $ print env -- DEBUG
+    liftIO $ print store -- DEBUG
+
+    return $ Unit ()
+
+evalExp (EOr e1 e2) = do
+    value1 <- evalExp e1
+    value2 <- evalExp e2
+
+    case (value1, value2) of
+        (Boolean bool1, Boolean bool2) -> return $ Boolean (bool1 || bool2)
+        _ -> fail "Incompatible types"
+
+evalExp (EAnd e1 e2) = do
+    value1 <- evalExp e1
+    value2 <- evalExp e2
+
+    case (value1, value2) of
+        (Boolean bool1, Boolean bool2) -> return $ Boolean (bool1 && bool2)
+        _ -> fail "Incompatible types"
+
+evalExp (EEq e1 e2) = do
+    value1 <- evalExp e1
+    value2 <- evalExp e2
+
+    val <- case (value1, value2) of
+        (Function f, Function g) -> fail "Can't compare function values"
+        (a, b) -> return $ a == b
+
+    return $ Boolean val
+
+evalExp (ENEq e1 e2) = do
+    (Boolean val) <- evalExp (EEq e1 e2)
+    return $ Boolean (not val)
+
+-- TODO: Refactor binary ops
+evalExp (ELess e1 e2) = do
+    value1 <- evalExp e1
+    value2 <- evalExp e2
+
+    case (value1, value2) of
+        (Int int1, Int int2) -> return $ Boolean (int1 < int2)
+        _ -> fail "Incompatible types"
+
+evalExp (ELEq e1 e2) = do
+    value1 <- evalExp e1
+    value2 <- evalExp e2
+
+    case (value1, value2) of
+        (Int int1, Int int2) -> return $ Boolean (int1 <= int2)
+        _ -> fail "Incompatible types"
+
+evalExp (EGreat e1 e2) = do
+    value1 <- evalExp e1
+    value2 <- evalExp e2
+
+    case (value1, value2) of
+        (Int int1, Int int2) -> return $ Boolean (int1 > int2)
+        _ -> fail "Incompatible types"
+
+evalExp (EGEq e1 e2) = do
+    value1 <- evalExp e1
+    value2 <- evalExp e2
+
+    case (value1, value2) of
+        (Int int1, Int int2) -> return $ Boolean (int1 >= int2)
+        _ -> fail "Incompatible types"
+
+evalExp (EPlus e1 e2) = do
+    value1 <- evalExp e1
+    value2 <- evalExp e2
+
+    case (value1, value2) of
+        (Int int1, Int int2) -> return $ Int (int1 + int2)
+        _ -> fail "Incompatible types"
+
+evalExp (EMinus e1 e2) = do
+    value1 <- evalExp e1
+    value2 <- evalExp e2
+
+    case (value1, value2) of
+        (Int int1, Int int2) -> return $ Int (int1 - int2)
+        _ -> fail "Incompatible types"
+
+evalExp (EMul e1 e2) = do
+    value1 <- evalExp e1
+    value2 <- evalExp e2
+
+    case (value1, value2) of
+        (Int int1, Int int2) -> return $ Int (int1 * int2)
+        _ -> fail "Incompatible types"
+
+evalExp (ENot e) = do
+    value <- evalExp e
+
+    case value of
+        Boolean bool -> return $ Boolean (not bool)
+        _ -> fail "Incompatible types"
+
+evalExp (ENeg e) = do
+    value <- evalExp e
+
+    case value of
+        Int int -> return $ Int (-int)
+        _ -> fail "Incompatible types"
 
 evalExp (EDiv e1 e2) = do
     value1 <- evalExp e1
@@ -122,8 +247,10 @@ evalExp (EDiv e1 e2) = do
 
     case (value1, value2) of
         (Int int1, Int 0) -> fail "Division by 0"
-        (Int int1, Int int2) -> return (Int (int1 `div` int2))
+        (Int int1, Int int2) -> return $ Int (int1 `div` int2)
         _ -> fail "Incompatible types"
+
+evalExp (ELit lit) = return (litToValue lit)
 
 evalExp (EBlockExp blockExp) = evalBlockExp blockExp
 
