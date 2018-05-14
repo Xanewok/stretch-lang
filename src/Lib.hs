@@ -7,8 +7,10 @@ import Control.Monad.Trans
 import Control.Monad.State
 
 import Data.Map (Map)
-import Data.Typeable(Typeable)
 import qualified Data.Map as Map
+
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 import Text.Show.Functions
 
@@ -23,7 +25,7 @@ interpretStmts :: [Stm] -> StateIO ()
 interpretStmts stmts = mapM_ evalStmt stmts
 
 initialState :: MyEnv
-initialState = (Map.empty, Map.empty)
+initialState = (Map.empty, Map.empty, Map.empty)
 
 toBool :: Boolean -> Bool
 toBool Boolean_true = True
@@ -58,7 +60,10 @@ type Loc = Int
 type Env = Map Ident Loc
 type Store = Map Loc Value
 
-type MyEnv = (Env, Store)
+-- TODO: Move to Types to be used with TypedIdent Ident Type
+type RecordFields = Map Ident (Set Ident)
+
+type MyEnv = (Env, Store, RecordFields) -- TODO: reorganize record fields
 
 type ReaderIO a = ReaderT MyEnv IO a
 type StateIO a = StateT MyEnv IO a
@@ -69,6 +74,20 @@ alloc m = if Map.null m then 0
 
 -- FIXME: expand stub impls
 evalStmt :: Stm -> StateIO ()
+
+-- TODO:
+evalStmt stm @ (SStruct ident args) = do
+    liftIO $ print stm -- DEBUG
+
+    (_, _, fields) <- get -- DEBUG
+    liftIO $ putStrLn $ "Fields before modifying: " ++ (show fields) -- DEBUG
+
+    modify(\(e,s,f) ->
+        let fieldIdents = map (\(TypedIdent ident _) -> ident) args in
+            (e,s, Map.insert ident (Set.fromList fieldIdents) f))
+
+    (_, _, fields) <- get -- DEBUG
+    liftIO $ putStrLn $ "Fields after modifying: " ++ (show fields) -- DEBUG
 
 evalStmt (SBlockExp blockExp) = evalBlockExp blockExp >> return ()
 
@@ -82,17 +101,18 @@ evalStmt stm @ (SLet ident expr) = do
 
     value <- evalExp expr
 
-    (env, store) <- get -- DEBUG
+    (env, store, fields) <- get -- DEBUG
     liftIO $ print env -- DEBUG
     liftIO $ print store -- DEBUG
 
-    modify (\(env, store) ->
+    modify (\(env, store, fields) ->
         let newloc = alloc store in
             (Map.insert ident newloc env,
-             Map.insert newloc value store)
+             Map.insert newloc value store,
+             fields)
         )
 
-    (env, store) <- get -- DEBUG
+    (env, store, fields) <- get -- DEBUG
     liftIO $ print env -- DEBUG
     liftIO $ print store -- DEBUG
 
@@ -126,15 +146,15 @@ evalExp (EAssign ident expr) = do
     value <- evalExp expr
     liftIO $ print value -- DEBUG
 
-    (env, store) <- get -- DEBUG
+    (env, store, fields) <- get -- DEBUG
     loc <- case Map.lookup ident env of
         Just x -> return x
         Nothing -> fail $ "trying to assign to an unbound variable: " ++ (show ident)
 
-    modify(\(env, store) ->
-        (env, Map.insert loc value store))
+    modify(\(env, store, fields) ->
+        (env, Map.insert loc value store, fields))
 
-    (env, store) <- get -- DEBUG
+    (env, store, fields) <- get -- DEBUG
     liftIO $ print env -- DEBUG
     liftIO $ print store -- DEBUG
 
@@ -252,7 +272,52 @@ evalExp (EDiv e1 e2) = do
 
 evalExp (ELit lit) = return (litToValue lit)
 
+evalExp (EStruct ident members) = do
+    (env, store, fields) <- get
+    -- Just make sure the type is okay and structure is declared
+    -- TODO: Ensure the types are correct
+    _ <- case Map.lookup ident fields of
+        Nothing -> fail $ "Struct of type " ++ (show ident) ++ " is not declared"
+        Just fields ->
+            let passedFields = map (\(MemberExp ident _) -> ident) members in
+                let declaredFields = Set.toList fields in
+                    if passedFields == declaredFields then return fields
+                    else fail $ "Mismatched members in struct definition"
+
+    struct <- sequence $ map (\(MemberExp ident e) -> mapStateT (liftM (\(val,s) -> ((ident,val),s))) $ evalExp e) members
+    liftIO $ putStrLn $ "Evaluated struct: " ++ (show struct) -- DEBUG
+
+    return $ Record (Map.fromList struct)
+-- evalExp(ECall Exp [Exp]) =
+
+evalExp (EIdent ident) = do
+    (env, store, fields) <- get -- DEBUG
+    liftIO $ print env -- DEBUG
+    liftIO $ print store -- DEBUG
+
+    case Map.lookup ident env of
+        Nothing -> fail $ "variable not in scope: " ++ (show ident)
+        Just loc -> case Map.lookup loc store of
+            Nothing -> fail $ "unreachable"
+            Just value -> do
+                liftIO $ putStrLn $ "Ident `" ++ (show ident) ++ "` point at value: " ++ (show value) -- DEBUG
+                return value
+
+evalExp (EPrint expr) = do
+    value <- evalExp expr
+    liftIO $ print (show value)
+    return $ Unit ()
+
+evalExp (EField expr ident) = do
+    value <- evalExp expr
+
+    case value of
+        Record r -> case Map.lookup ident r of
+            Just value -> return value
+            Nothing -> fail $ (show ident) ++ " is not a field on structure " ++ (show r)
+        _ -> fail $ (show expr) ++ " is not a record"
 evalExp (EBlockExp blockExp) = evalBlockExp blockExp
+-- evalExp (EAnonFun AnonFunc) =
 
 -- scopes (manages below?)
 -- variable bindings -- holds values of a given type
