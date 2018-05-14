@@ -17,7 +17,10 @@ import BNFC.PrintStretch
 
 interpret :: Program -> IO ()
 interpret (ProgramEntry stmts) =
-    (evalStateT $ mapM_ evalStmt stmts) initialState
+    evalStateT (interpretStmts stmts) initialState
+
+interpretStmts :: [Stm] -> StateIO ()
+interpretStmts stmts = mapM_ evalStmt stmts
 
 initialState :: MyEnv
 initialState = (Map.empty, Map.empty)
@@ -58,6 +61,9 @@ alloc m = if Map.null m then 0
 
 -- FIXME: expand stub impls
 evalStmt :: Stm -> StateIO ()
+
+evalStmt (SBlockExp blockExp) = evalBlockExp blockExp >> return ()
+
 evalStmt (SExp expr) = do
     liftIO $ print expr -- DEBUG
     value <- evalExp expr
@@ -82,6 +88,17 @@ evalStmt stm @ (SLet ident expr) = do
     liftIO $ print env -- DEBUG
     liftIO $ print store -- DEBUG
 
+evalBlock :: Block -> StateIO Value
+evalBlock (Block1 stmts) = interpretStmts stmts >> (return $ Unit ())
+evalBlock (Block2 stmts expr) = interpretStmts stmts >> (evalExp expr)
+
+evalBlockExp :: BlockExp -> StateIO Value
+evalBlockExp (EBlock block) = evalBlock block
+-- TODO: rest
+-- evalBlockExp (EIf Exp Block)
+-- evalBlockExp (EIfElse Exp Block Block)
+-- evalBlockExp (EWhile Exp Block)
+
 evalExp :: Exp -> StateIO Value
 evalExp (ELit lit) = return (litToValue lit)
 
@@ -93,6 +110,8 @@ evalExp (EDiv e1 e2) = do
         (Int int1, Int 0) -> fail "Division by 0"
         (Int int1, Int int2) -> return (Int (int1 `div` int2))
         _ -> fail "Incompatible types"
+
+evalExp (EBlockExp blockExp) = evalBlockExp blockExp
 
 -- scopes (manages below?)
 -- variable bindings -- holds values of a given type
