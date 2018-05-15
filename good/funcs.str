@@ -1,0 +1,8 @@
+let lambda = || { print("it works!") };
+lambda();
+
+fn definition() {
+    print("This works, too!");
+}
+
+definition();

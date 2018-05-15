@@ -1,0 +1,9 @@
+let a = 42;
+a = 15;
+a;
+
+print(a);
+
+let b = { a = 3; 1 };
+print(a);
+print(b);

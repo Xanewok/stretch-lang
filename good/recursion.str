@@ -1,0 +1,6 @@
+// TODO: Jeszcze nie działa przekazywanie argumentów do funkcji
+fn infinite() {
+    infinite();
+}
+
+infinite();
