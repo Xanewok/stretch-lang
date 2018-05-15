@@ -12,10 +12,11 @@ import qualified Data.Map as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
 
-import Text.Show.Functions
-
 import BNFC.AbsStretch
 import BNFC.PrintStretch
+
+debugMode = 0
+debugPutStrLn arg = when (debugMode > 0) (putStrLn arg)
 
 interpret :: Program -> IO ()
 interpret (ProgramEntry stmts) =
@@ -45,7 +46,6 @@ data Value
     | Str String
     | Record (Map Ident Value)
     | Function Env Block
-    deriving Show
 
 instance Eq Value where
     Unit () == Unit () = True
@@ -54,6 +54,13 @@ instance Eq Value where
     Str s1 == Str s2 = s1 == s2
     Record r1 == Record r2 = r1 == r2 -- TODO: Structural equivalence? Need to include type system info
 
+instance Show Value where
+    show (Unit inner) =  show inner
+    show (Boolean inner) = show inner
+    show (Int inner) = show inner
+    show (Str inner) = inner
+    show (Record inner) = show inner
+    show (Function env block) = (show env) ++ " " ++ (show block)
 
 type Loc = Int
 
@@ -105,26 +112,23 @@ evalStmt (SFunc ident args block) = do
 -- TODO: Implement and verify type mismatch
 evalStmt (SFuncRet ident args typ block) = evalStmt (SFunc ident args block)
 evalStmt stm @ (SStruct ident args) = do
-    liftIO $ print stm -- DEBUG
+    (_, _, fields) <- get
 
-    (_, _, fields) <- get -- DEBUG
-    liftIO $ putStrLn $ "Fields before modifying: " ++ (show fields) -- DEBUG
+    liftIO $ debugPutStrLn $ "Fields before modifying: " ++ (show fields)
 
     modify(\(e,s,f) ->
         let fieldIdents = map (\(TypedIdent ident _) -> ident) args in
             (e,s, Map.insert ident (Set.fromList fieldIdents) f))
 
-    (_, _, fields) <- get -- DEBUG
-    liftIO $ putStrLn $ "Fields after modifying: " ++ (show fields) -- DEBUG
+    (_, _, fields) <- get
+    liftIO $ debugPutStrLn $ "Fields after modifying: " ++ (show fields)
 
 evalStmt stm @ (SLet ident expr) = do
-    liftIO $ print stm -- DEBUG
-
     value <- evalExp expr
 
-    (env, store, fields) <- get -- DEBUG
-    liftIO $ print env -- DEBUG
-    liftIO $ print store -- DEBUG
+    (env, store, fields) <- get
+    liftIO $ debugPutStrLn $ show env
+    liftIO $ debugPutStrLn $ show store
 
     modify (\(env, store, fields) ->
         let newloc = alloc store in
@@ -133,9 +137,9 @@ evalStmt stm @ (SLet ident expr) = do
              fields)
         )
 
-    (env, store, fields) <- get -- DEBUG
-    liftIO $ print env -- DEBUG
-    liftIO $ print store -- DEBUG
+    (env, store, fields) <- get
+    liftIO $ debugPutStrLn $ show env
+    liftIO $ debugPutStrLn $ show store
 
 -- TODO: Check type mismatch
 evalStmt (SLetType ident typ expr) = evalStmt (SLet ident expr)
@@ -143,9 +147,9 @@ evalStmt (SLetType ident typ expr) = evalStmt (SLet ident expr)
 evalStmt (SBlockExp blockExp) = evalBlockExp blockExp >> return ()
 
 evalStmt (SExp expr) = do
-    liftIO $ print expr -- DEBUG
+    liftIO $ debugPutStrLn $ show expr
     value <- evalExp expr
-    liftIO $ print value -- DEBUG
+    liftIO $ debugPutStrLn $ show value
 
 -- TODO: Scopes with STATIC binding (create a fresh copy for nested exprs)
 evalBlock :: Block -> StateIO Value
@@ -176,9 +180,9 @@ evalBlockExp while @ (EWhile expr block) = do
 evalExp :: Exp -> StateIO Value
 evalExp (EAssign ident expr) = do
     value <- evalExp expr
-    liftIO $ print value -- DEBUG
+    liftIO $ debugPutStrLn $ show value
 
-    (env, store, fields) <- get -- DEBUG
+    (env, store, fields) <- get
     loc <- case Map.lookup ident env of
         Just x -> return x
         Nothing -> fail $ "trying to assign to an unbound variable: " ++ (show ident)
@@ -186,9 +190,9 @@ evalExp (EAssign ident expr) = do
     modify(\(env, store, fields) ->
         (env, Map.insert loc value store, fields))
 
-    (env, store, fields) <- get -- DEBUG
-    liftIO $ print env -- DEBUG
-    liftIO $ print store -- DEBUG
+    (env, store, fields) <- get
+    liftIO $ debugPutStrLn $ show env
+    liftIO $ debugPutStrLn $ show store
 
     return $ Unit ()
 
@@ -317,7 +321,7 @@ evalExp (EStruct ident members) = do
                     else fail $ "Mismatched members in struct definition"
 
     struct <- sequence $ map (\(MemberExp ident e) -> mapStateT (liftM (\(val,s) -> ((ident,val),s))) $ evalExp e) members
-    liftIO $ putStrLn $ "Evaluated struct: " ++ (show struct) -- DEBUG
+    liftIO $ debugPutStrLn $ "Evaluated struct: " ++ (show struct)
 
     return $ Record (Map.fromList struct)
 
@@ -325,7 +329,7 @@ evalExp (ECall funcExp args) = do
     func <- evalExp funcExp
     Function funcEnv block <- case func of
         f @(Function _ _) -> return f
-        _ -> fail $ "Expression " ++ (show evalExp) ++ " is not a function"
+        _ -> fail $ "Expression " ++ (show funcExp) ++ " is not a function"
 
     -- TODO: Check types of called function and arguments
     evaluatedArgs <- mapM evalExp args
@@ -342,21 +346,21 @@ evalExp (ECall funcExp args) = do
     return result
 
 evalExp (EIdent ident) = do
-    (env, store, fields) <- get -- DEBUG
-    liftIO $ print env -- DEBUG
-    liftIO $ print store -- DEBUG
+    (env, store, fields) <- get
+    liftIO $ debugPutStrLn (show env)
+    liftIO $ debugPutStrLn (show store)
 
     case Map.lookup ident env of
         Nothing -> fail $ "variable not in scope: " ++ (show ident)
         Just loc -> case Map.lookup loc store of
             Nothing -> fail $ "unreachable"
             Just value -> do
-                liftIO $ putStrLn $ "Ident `" ++ (show ident) ++ "` point at value: " ++ (show value) -- DEBUG
+                liftIO $ debugPutStrLn $ "Ident `" ++ (show ident) ++ "` point at value: " ++ (show value)
                 return value
 
 evalExp (EPrint expr) = do
     value <- evalExp expr
-    liftIO $ print (show value)
+    liftIO $ putStrLn (show value)
     return $ Unit ()
 
 evalExp (EField expr ident) = do
