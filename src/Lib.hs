@@ -308,6 +308,19 @@ evalExp (EDiv e1 e2) = do
 
 evalExp (ELit lit) = return (litToValue lit)
 
+evalExp (EIdent ident) = do
+    (env, store, fields) <- get
+    liftIO $ debugPutStrLn (show env)
+    liftIO $ debugPutStrLn (show store)
+
+    case Map.lookup ident env of
+        Nothing -> fail $ "variable not in scope: " ++ (show ident)
+        Just loc -> case Map.lookup loc store of
+            Nothing -> fail $ "unreachable"
+            Just value -> do
+                liftIO $ debugPutStrLn $ "Ident `" ++ (show ident) ++ "` point at value: " ++ (show value)
+                return value
+
 evalExp (EStruct ident members) = do
     (env, store, fields) <- get
     -- Just make sure the type is okay and structure is declared
@@ -344,19 +357,6 @@ evalExp (ECall funcExp args) = do
     modify(\(env, store, fields) -> (env, changedStore, fields))
 
     return result
-
-evalExp (EIdent ident) = do
-    (env, store, fields) <- get
-    liftIO $ debugPutStrLn (show env)
-    liftIO $ debugPutStrLn (show store)
-
-    case Map.lookup ident env of
-        Nothing -> fail $ "variable not in scope: " ++ (show ident)
-        Just loc -> case Map.lookup loc store of
-            Nothing -> fail $ "unreachable"
-            Just value -> do
-                liftIO $ debugPutStrLn $ "Ident `" ++ (show ident) ++ "` point at value: " ++ (show value)
-                return value
 
 evalExp (EPrint expr) = do
     value <- evalExp expr
