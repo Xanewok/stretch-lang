@@ -1,0 +1,15 @@
+if 2 + 2 == 5 {
+    print("!!!");
+} else {
+    print("Na pewno?...");
+}
+
+if 2 + 2 == 4 {
+    print("A jednak!");
+}
+
+// Na razie jest jeszcze mały błąd ze scopem zmiennych, przez co
+// `while a > 0 { a = a - 1; }` działa dość... nieoczekiwanie :(
+while false {
+    print("Niewykonalne!");
+}

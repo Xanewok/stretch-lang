@@ -1,0 +1,17 @@
+let some = 4;
+
+struct MyStruct {
+    a: i32,
+    b: i32,
+    c: bool,
+    d: bool,
+}
+
+let xyz = MyStruct {
+    a: 1,
+    b: 3,
+    c: true,
+    d: (some = 2),
+};
+
+print(xyz.c);

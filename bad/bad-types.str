@@ -1,0 +1,1 @@
+let wrong = 2 + "napis";
