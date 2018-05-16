@@ -92,6 +92,15 @@ allocWithVal ident value = do
                 fields))
         return newloc
 
+-- Given an initial state, runs a StateT in a local variable binding environment
+runInLocalEnv :: StateIO a -> MyEnv -> StateIO a
+runInLocalEnv st initial = do
+    (result, (_, store', _)) <- liftIO $ runStateT st initial
+
+    modify(\(env, store, fields) -> (env, store', fields))
+
+    return result
+
 evalStmt :: Stm -> StateIO ()
 
 -- TODO
@@ -151,20 +160,27 @@ evalStmt (SExp expr) = do
     value <- evalExp expr
     liftIO $ debugPutStrLn $ show value
 
--- TODO: Scopes with STATIC binding (create a fresh copy for nested exprs)
 evalBlock :: Block -> StateIO Value
-evalBlock (Block1 stmts) = interpretStmts stmts >> (return $ Unit ())
-evalBlock (Block2 stmts expr) = interpretStmts stmts >> (evalExp expr)
+evalBlock (Block1 stmts) = do
+    st <- get
+
+    runInLocalEnv (interpretStmts stmts >> (return $ Unit ())) st
+
+
+evalBlock (Block2 stmts expr) = do
+    st <- get
+
+    runInLocalEnv (interpretStmts stmts >> evalExp expr) st
+
 
 evalBlockExp :: BlockExp -> StateIO Value
 evalBlockExp (EBlock block) = evalBlock block
--- TODO: reset block env after quitting blocks
 evalBlockExp (EIf expr block) = do
     value <- evalExp expr
     case value of
         Boolean val -> if val then evalBlock block else return $ Unit ()
         _ -> fail "mismatched types: `if` guard clause not a boolean"
--- TODO: reset block env after quitting blocks
+
 evalBlockExp (EIfElse expr ifBlock elseBlock) = do
     value <- evalExp expr
     case value of
@@ -174,7 +190,9 @@ evalBlockExp (EIfElse expr ifBlock elseBlock) = do
 evalBlockExp while @ (EWhile expr block) = do
     value <- evalExp expr
     case value of
-        Boolean val -> if val then evalBlockExp while else return $ Unit ()
+        Boolean val ->
+            if val then evalBlock block >> evalBlockExp while
+                   else return $ Unit ()
         _ -> fail "mismatched types: `if` guard clause not a boolean"
 
 evalExp :: Exp -> StateIO Value
@@ -350,13 +368,7 @@ evalExp (ECall funcExp args) = do
 
     (env, store, fields) <- get
 
-    -- Evaluate function using function's static binding environment
-    (result, (_, changedStore, _)) <- liftIO $ runStateT (evalBlock block) (funcEnv, store, fields)
-
-    -- Functions can modify state - store modified state, resulting from evaluating the function call
-    modify(\(env, store, fields) -> (env, changedStore, fields))
-
-    return result
+    runInLocalEnv (evalBlock block) (funcEnv, store, fields)
 
 evalExp (EPrint expr) = do
     value <- evalExp expr

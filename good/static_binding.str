@@ -1,0 +1,39 @@
+let a = 5;
+print(a);
+
+{
+    let a = 3;
+    print(a);
+}
+
+print(a);
+
+fn func() {
+    let a = 7;
+    print(a);
+}
+
+func();
+
+print(a);
+
+let eight = 4 + { let a = 4; a };
+print(eight); // 8
+
+print(a); // still 5
+
+let six = 4 + if true { let a = 2; a } else { let a = 1; a };
+print(six); // 6
+
+print(a); // still 5
+
+let counter = 3;
+while counter > 0 {
+    let a = counter;
+
+    print(counter);
+
+    counter = counter - 1;
+}
+
+print(a); // still 5

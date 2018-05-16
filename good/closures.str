@@ -1,0 +1,27 @@
+let a = 4;
+
+let fun = || { a = 5; a };
+
+print(fun());
+print(a);
+
+fn returns_func() {
+    || { print("Hello there!"); }
+}
+
+let woah = returns_func();
+
+woah();
+
+fn returns_closure() {
+    let a = 5;
+    || { a = a - 1; print("> Counter in closure"); print(a); }
+}
+
+let a = 42;
+let tick = returns_closure();
+
+tick();
+print("> Local value");
+print(a);
+tick();
