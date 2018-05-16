@@ -37,3 +37,21 @@ while counter > 0 {
 }
 
 print(a); // still 5
+
+fn outer() {
+    let a = 6;
+    print(a);
+
+    fn inner() {
+        let a = 7;
+        print(a);
+    }
+
+    inner();
+
+    print(a);
+}
+
+outer();
+
+print(a); // still 5
