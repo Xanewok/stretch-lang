@@ -1,0 +1,12 @@
+struct MyStruct {
+    a: int,
+    b: bool,
+    c: ()
+}
+
+let a = MyStruct {
+    a: 1,
+    b: true,
+    c: (),
+    extra: "invalid!",
+};

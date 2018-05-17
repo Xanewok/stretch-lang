@@ -66,15 +66,10 @@ type Loc = Int
 
 type Env = Map Ident Loc
 type Store = Map Loc Value
+type StructDecl = Map Ident [FormalArg]
 
--- TODO: Unify other decls with types
-type FuncDecl = Map Ident ([FormalArg], Type)
+type MyEnv = (Env, Store, StructDecl)
 
-type MyEnv = (Env, Store, RecordFields) -- TODO: remove and replace with type definitions
--- TODO: Move to Types to be used with TypedIdent Ident Type
-type RecordFields = Map Ident (Set Ident)
-
-type ReaderIO a = ReaderT MyEnv IO a
 type StateIO a = StateT MyEnv IO a
 
 alloc :: Store -> Loc
@@ -103,7 +98,6 @@ runInLocalEnv st initial = do
 
 evalStmt :: Stm -> StateIO ()
 
--- TODO
 evalStmt (SFunc ident args block) = do
     -- TODO: Introduce new type definition for the function
 
@@ -125,9 +119,7 @@ evalStmt stm @ (SStruct ident args) = do
 
     liftIO $ debugPutStrLn $ "Fields before modifying: " ++ (show fields)
 
-    modify(\(e,s,f) ->
-        let fieldIdents = map (\(TypedIdent ident _) -> ident) args in
-            (e,s, Map.insert ident (Set.fromList fieldIdents) f))
+    modify (\(e,s,f) -> (e,s, Map.insert ident args f))
 
     (_, _, fields) <- get
     liftIO $ debugPutStrLn $ "Fields after modifying: " ++ (show fields)
@@ -347,8 +339,8 @@ evalExp (EStruct ident members) = do
         Nothing -> fail $ "Struct of type " ++ (show ident) ++ " is not declared"
         Just fields ->
             let passedFields = map (\(MemberExp ident _) -> ident) members in
-                let declaredFields = Set.toList fields in
-                    if passedFields == declaredFields then return fields
+                let declaredFields = map (\(TypedIdent ident typ) -> ident) fields in
+                    if passedFields == declaredFields then return declaredFields
                     else fail $ "Mismatched members in struct definition"
 
     struct <- sequence $ map (\(MemberExp ident e) -> mapStateT (liftM (\(val,s) -> ((ident,val),s))) $ evalExp e) members

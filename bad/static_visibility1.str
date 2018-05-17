@@ -1,0 +1,8 @@
+fn outer() {
+    fn inner() {
+        struct Inner {}
+    }
+}
+
+outer();
+let a = Inner {};
