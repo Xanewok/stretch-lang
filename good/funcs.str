@@ -1,11 +1,11 @@
 let lambda = || { print("it works!"); };
 lambda();
 
-fn definition() {
+fn defined() {
     print("This works, too!");
 }
 
-definition();
+defined();
 
 fn print_string(arg: string) {
     print(arg);
@@ -25,3 +25,28 @@ print(a); // 42
 
 let double_it = |x: int| { x * 2 };
 print(double_it(33)); // 66
+
+fn accepts_func(func: Fn() -> ()) {
+    func();
+}
+
+accepts_func(defined); // This works, too!
+
+fn accepts_lambda(lambda: Fn(int) -> int) {
+    print(lambda(22));
+}
+accepts_lambda(double_it); // 44
+
+fn return_countdown() -> Fn() -> int {
+    let counter = 3;
+
+    || {
+        counter = counter - 1;
+        counter
+    }
+}
+
+let tick = return_countdown();
+print(tick()); // 2
+print(tick()); // 1
+print(tick()); // 0
