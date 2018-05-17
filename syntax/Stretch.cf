@@ -15,6 +15,11 @@ TyBool.   Type ::= "bool" ;
 TyInt.    Type ::= "int" ;
 TyString. Type ::= "string" ;
 TyFun.    Type ::= "Fn" "(" [Type] ")" "->" Type ;
+
+{- Semantically struct type is also parametrized by its fields (with types),
+   encode this information in the AST for the type-checker -}
+internal TyStruct. Type ::= "struct" Ident "{" [FormalArg] "}" ;
+
 separator Type "," ;
 
 {- Statements -}

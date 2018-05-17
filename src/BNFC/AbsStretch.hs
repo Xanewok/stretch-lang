@@ -29,6 +29,7 @@ data Type
     | TyInt
     | TyString
     | TyFun [Type] Type
+    | TyStruct Ident [FormalArg]
   deriving (Eq, Ord, Show, Read, Data, Typeable, Generic)
 
 data Stm

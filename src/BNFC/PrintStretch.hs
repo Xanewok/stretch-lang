@@ -107,6 +107,7 @@ instance Print Type where
     TyInt -> prPrec i 0 (concatD [doc (showString "int")])
     TyString -> prPrec i 0 (concatD [doc (showString "string")])
     TyFun types type_ -> prPrec i 0 (concatD [doc (showString "Fn"), doc (showString "("), prt 0 types, doc (showString ")"), doc (showString "->"), prt 0 type_])
+    TyStruct id formalargs -> prPrec i 0 (concatD [doc (showString "struct"), prt 0 id, doc (showString "{"), prt 0 formalargs, doc (showString "}")])
   prtList _ [] = (concatD [])
   prtList _ [x] = (concatD [prt 0 x])
   prtList _ (x:xs) = (concatD [prt 0 x, doc (showString ","), prt 0 xs])
