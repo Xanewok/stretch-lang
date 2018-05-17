@@ -1,4 +1,4 @@
-let lambda = || { print("it works!") };
+let lambda = || { print("it works!"); };
 lambda();
 
 fn definition() {
@@ -6,3 +6,22 @@ fn definition() {
 }
 
 definition();
+
+fn print_string(arg: string) {
+    print(arg);
+}
+
+print_string("Passed argument");
+
+let arg = 3;
+
+fn returns_doubled(msg: string, arg: int) -> int {
+    print(msg);
+    arg * 2
+}
+
+let a = returns_doubled("Hello", 21);
+print(a); // 42
+
+let double_it = |x: int| { x * 2 };
+print(double_it(33)); // 66

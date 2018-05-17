@@ -45,7 +45,7 @@ data Value
     | Int Integer
     | Str String
     | Record (Map Ident Value)
-    | Function Env Block
+    | Function Env [FormalArg] Block
 
 instance Eq Value where
     Unit () == Unit () = True
@@ -60,7 +60,7 @@ instance Show Value where
     show (Int inner) = show inner
     show (Str inner) = inner
     show (Record inner) = show inner
-    show (Function env block) = (show env) ++ " " ++ (show block)
+    show (Function env args block) = (show env) ++ " " ++ (show args) ++ " " ++ (show block)
 
 type Loc = Int
 
@@ -113,7 +113,7 @@ evalStmt (SFunc ident args block) = do
 
     -- Replace the dummy value with our function, storing previously modified env
     modify(\(env, store, fields) ->
-        let func = Function env block in
+        let func = Function env args block in
             let store' = Map.insert loc func store in
                 (env, store', fields)
         )
@@ -235,7 +235,7 @@ evalExp (EEq e1 e2) = do
     value2 <- evalExp e2
 
     val <- case (value1, value2) of
-        (Function _ _, Function _ _) -> fail "Can't compare function values"
+        (Function _ _ _, Function _ _ _) -> fail "Can't compare function values"
         (a, b) -> return $ a == b
 
     return $ Boolean val
@@ -358,17 +358,28 @@ evalExp (EStruct ident members) = do
 
 evalExp (ECall funcExp args) = do
     func <- evalExp funcExp
-    Function funcEnv block <- case func of
-        f @(Function _ _) -> return f
+    Function funcEnv formalArgs block <- case func of
+        f @(Function _ _ _) -> return f
         _ -> fail $ "Expression " ++ (show funcExp) ++ " is not a function"
 
     -- TODO: Check types of called function and arguments
     evaluatedArgs <- mapM evalExp args
-    -- TODO: pass args - needs modifying environment - needs still knowing func type (idents)
 
-    (env, store, fields) <- get
+    let args = zip evaluatedArgs formalArgs in
+        let allocFuncArgs = (\(value, (TypedIdent ident _)) -> allocWithVal ident value) in
+            do
+                (env, store, fields) <- get
 
-    runInLocalEnv (evalBlock block) (funcEnv, store, fields)
+                liftIO $ debugPutStrLn ""
+                liftIO $ debugPutStrLn $ "Env before running:\n" ++ (show env)
+
+                tmp <- runInLocalEnv (mapM_ allocFuncArgs args >> evalBlock block)
+                    (funcEnv, store, fields)
+
+                liftIO $ debugPutStrLn ""
+                liftIO $ debugPutStrLn $ "Env after running:\n" ++ (show env)
+
+                return tmp
 
 evalExp (EPrint expr) = do
     value <- evalExp expr
@@ -390,4 +401,4 @@ evalExp (EAnonFun (AnonEmpty block)) = evalExp (EAnonFun (AnonArgs [] block))
 evalExp (EAnonFun (AnonArgs args block)) = do
     (env, _, _) <- get
 
-    return $ Function env block
+    return $ Function env args block

@@ -1,37 +1,37 @@
 let a = 5;
-print(a);
+print(a); // 5
 
 {
     let a = 3;
-    print(a);
+    print(a); // 3
 }
 
-print(a);
+print(a); // 5
 
 fn func() {
     let a = 7;
-    print(a);
+    print(a); // 7
 }
 
-func();
+func(); // 7
 
-print(a);
+print(a); // 5
 
 let eight = 4 + { let a = 4; a };
 print(eight); // 8
 
-print(a); // still 5
+print(a); // 5
 
 let six = 4 + if true { let a = 2; a } else { let a = 1; a };
 print(six); // 6
 
-print(a); // still 5
+print(a); // 5
 
 let counter = 3;
 while counter > 0 {
     let a = counter;
 
-    print(counter);
+    print(counter); // 3, 2, 1
 
     counter = counter - 1;
 }
@@ -55,3 +55,15 @@ fn outer() {
 outer();
 
 print(a); // still 5
+
+fn print_shadowed_arg(a: int) {
+    print("Regular function");
+    print(a);
+}
+
+print_shadowed_arg(9); // Regular function, 9
+print(a); // 5
+
+let print_shadowed_arg = |a: int| { print("Lambda"); print(a); };
+print_shadowed_arg(6); // Lambda, 6
+print(a); // 5
