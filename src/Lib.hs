@@ -12,11 +12,10 @@ import qualified Data.Map as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
 
+import Util(debugPutStrLn)
 import BNFC.AbsStretch
 import BNFC.PrintStretch
-
-debugMode = 1
-debugPutStrLn arg = when (debugMode > 0) (putStrLn arg)
+import Typeck(typeck)
 
 interpret :: Program -> IO ()
 interpret (ProgramEntry stmts) =

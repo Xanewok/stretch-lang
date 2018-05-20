@@ -48,3 +48,15 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - stretch-lang
+
+tests:
+  stretch-lang-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -Wall
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - stretch-lang
