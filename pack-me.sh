@@ -22,6 +22,8 @@ cp README_pl.md igor_matuszewski/README
 cp -R good/ igor_matuszewski/
 cp -R bad/ igor_matuszewski/
 
+cp test.sh igor_matuszewski/
+
 # Generate a Makefile to be used on a `students` university machine
 rm Makefile 2>/dev/null
 echo "#!/bin/bash" >> Makefile
@@ -31,9 +33,9 @@ echo "CABAL=\$(GHC_BIN)/cabal" >> Makefile
 echo "build:" >> Makefile
 echo -e "\t\$(CABAL) sandbox init" >> Makefile
 echo -e "\t\$(CABAL) install --only-dependencies -w \$(GHC)" >> Makefile
-echo -e "\t\$(CABAL) configure --enable-tests -w \$(GHC)" >> Makefile
+echo -e "#\t\$(CABAL) configure --enable-tests -w \$(GHC)" >> Makefile
+echo -e "\t\$(CABAL) configure -w \$(GHC)" >> Makefile
 echo -e "\t\$(CABAL) build" >> Makefile
-echo -e "\t\$(CABAL) test" >> Makefile
 echo -e "\tcp dist/build/stretchi/stretchi ./interpreter" >> Makefile
 echo "" >> Makefile
 echo "clean:" >> Makefile

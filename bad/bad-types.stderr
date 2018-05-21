@@ -1,0 +1,4 @@
+stretchi: user error (typeck error: 
+In `"napis"`:
+  mismatched operand type
+  expected `TyInt`, got `TyString`)

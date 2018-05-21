@@ -8,7 +8,7 @@ import Control.Monad.State
 import qualified Debug.Trace
 
 debugMode :: Integer
-debugMode = 1
+debugMode = 0
 
 debugPutStrLn:: String -> IO ()
 debugPutStrLn arg = when (debugMode > 0) (putStrLn arg)

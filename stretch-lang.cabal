@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 75b0af4f4351567f70ecb5baafda8090edb3a74a388b762339f3d6a3551c70db
+-- hash: e5a6f66191c4f4c3a42238fb750dddbf7a9daf1193a4e825562b0654e631a592
 
 name:           stretch-lang
 version:        0.1.0.0
@@ -79,7 +79,8 @@ test-suite stretch-lang-test
       test
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      array
+      Glob
+    , array
     , base >=4.7 && <5
     , containers
     , directory

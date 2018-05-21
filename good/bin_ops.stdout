@@ -1,0 +1,32 @@
+> a
+5
+> a + 3
+8
+> 3 - a
+-2
+> 3 * 5
+15
+> 42 / 5
+8
+> 2 + -3
+-1
+> true && false
+False
+> true && true
+True
+> true || false
+True
+> true || true
+True
+> false || false
+False
+> !false
+True
+> 2 == 2
+True
+> 2 == 3
+False
+> 3 > 2
+True
+> -1 < 0
+True

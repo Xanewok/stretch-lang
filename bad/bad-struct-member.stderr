@@ -1,0 +1,3 @@
+stretchi: user error (typeck error: 
+In `xyz . c`:
+  No such field `c` on struct)

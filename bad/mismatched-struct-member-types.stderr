@@ -1,0 +1,8 @@
+stretchi: user error (typeck error: 
+In `MyStruct {
+  a : false, b : true, c : false 
+}
+`:
+  Mismatched struct args:
+  expected `fromList [(Ident "a",TyInt),(Ident "b",TyBool),(Ident "c",TyUnit)]`
+  found `fromList [(Ident "a",TyBool),(Ident "b",TyBool),(Ident "c",TyBool)]`)
