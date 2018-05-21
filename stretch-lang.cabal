@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d18da34d5f3e4faa1eb09dc179025ba0532a66db120bbc8f789d7a52fd4f5092
+-- hash: 75b0af4f4351567f70ecb5baafda8090edb3a74a388b762339f3d6a3551c70db
 
 name:           stretch-lang
 version:        0.1.0.0
@@ -28,7 +28,7 @@ source-repository head
 custom-setup
   setup-depends:
       Cabal >=1.10
-    , base >=4.6 && <5
+    , base >=4.7 && <5
     , directory
     , process
 
@@ -37,7 +37,7 @@ library
       src
   build-depends:
       array
-    , base >=4.6 && <5
+    , base >=4.7 && <5
     , containers
     , directory
     , mtl
@@ -62,7 +62,7 @@ executable stretchi
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       array
-    , base >=4.6 && <5
+    , base >=4.7 && <5
     , containers
     , directory
     , mtl
@@ -80,7 +80,7 @@ test-suite stretch-lang-test
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       array
-    , base >=4.6 && <5
+    , base >=4.7 && <5
     , containers
     , directory
     , mtl

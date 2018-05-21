@@ -9,6 +9,7 @@ mkdir igor_matuszewski 2>/dev/null
 
 cp -R app/ igor_matuszewski/
 cp -R src/ igor_matuszewski/
+cp -R test/ igor_matuszewski/
 cp -R syntax/ igor_matuszewski/
 
 cp Setup.hs igor_matuszewski/
@@ -24,9 +25,15 @@ cp -R bad/ igor_matuszewski/
 # Generate a Makefile to be used on a `students` university machine
 rm Makefile 2>/dev/null
 echo "#!/bin/bash" >> Makefile
-echo "CABAL=/home/students/inf/PUBLIC/MRJP/ghc-8.2.2/bin/cabal" >> Makefile
+echo "GHC_BIN=/home/students/inf/PUBLIC/MRJP/ghc-8.2.2/bin" >> Makefile
+echo "GHC=\$(GHC_BIN)/ghc" >> Makefile
+echo "CABAL=\$(GHC_BIN)/cabal" >> Makefile
 echo "build:" >> Makefile
+echo -e "\t\$(CABAL) sandbox init" >> Makefile
+echo -e "\t\$(CABAL) install --only-dependencies -w \$(GHC)" >> Makefile
+echo -e "\t\$(CABAL) configure --enable-tests -w \$(GHC)" >> Makefile
 echo -e "\t\$(CABAL) build" >> Makefile
+echo -e "\t\$(CABAL) test" >> Makefile
 echo -e "\tcp dist/build/stretchi/stretchi ./interpreter" >> Makefile
 echo "" >> Makefile
 echo "clean:" >> Makefile
