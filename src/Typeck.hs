@@ -176,7 +176,7 @@ ti (ENEq left right) = ti (ENot (EEq left right))
 
 ti (ELess left right) = binOp ELess left right TyInt TyBool
 ti (ELEq left right) = binOp ELEq left right TyInt TyBool
-ti (EGreat left right) = binOp ELess left right TyInt TyBool
+ti (EGreat left right) = binOp EGreat left right TyInt TyBool
 ti (EGEq left right) = binOp EGEq left right TyInt TyBool
 
 ti (EPlus left right) = binOp EPlus left right TyInt TyInt
