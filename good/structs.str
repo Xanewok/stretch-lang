@@ -1,10 +1,10 @@
 let some = 4;
 
 struct MyStruct {
-    a: i32,
-    b: i32,
+    a: int,
+    b: int,
     c: bool,
-    d: bool,
+    d: (),
 }
 
 let xyz = MyStruct {

@@ -1,6 +1,14 @@
-// TODO: Jeszcze nie działa przekazywanie argumentów do funkcji
-fn infinite() {
-    infinite();
+fn fib(value: int) -> int {
+    if value == 0 {
+        0
+    } else {
+        if value == 1 {
+            1
+        } else {
+            fib(value - 1) + fib(value - 2)
+        }
+    }
 }
 
-infinite();
+let twenty_one = fib(8);
+print(twenty_one);

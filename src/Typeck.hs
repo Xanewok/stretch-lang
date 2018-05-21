@@ -37,29 +37,35 @@ typeck :: Program -> Result Program
 typeck prog @ (ProgramEntry stmts) =
     evalStateT (ProgramEntry <$> mapM typeckStm stmts) (Map.empty)
 
+typeckEvalFuncArg :: TypeCheck FormalArg
+typeckEvalFuncArg arg @ (TypedIdent ident typ) = do
+    typ <- typeckType typ
+    modify(\st -> Map.insert ident typ st) >> return arg
+
 typeckStm :: TypeCheck Stm
 typeckStm (SFunc ident args block) =
     -- Functions have implicit return value ()
     typeckStm (SFuncRet ident args TyUnit block)
 
-typeckStm (SFuncRet ident @ (Ident funcName) args typ block) =
+typeckStm (SFuncRet ident @ (Ident funcName) args retType block) =
     let mapStateWithIdent ident = mapStateT (liftM (\(typ, s) -> ((TypedIdent ident typ),s))) in
         let typeckArgs x = (sequence $ map (\(TypedIdent i t) -> mapStateWithIdent i $ typeckType t) x) in do
             -- Check args and return type before introducing the actual function type itself
             args <- typeckArgs args
-            typ <- typeckType typ
-
-            block @ (Block2 _ (ETyped _ bodyType)) <- runInLocalEnv (typeckBlock block) =<< get
+            retType <- typeckType retType
 
             -- Introduce type definition for the function so it's visible
             -- inside the type-checked block and after the func def itself
             let argTypes = map(\(TypedIdent _ typ) -> typ) args in
-                modify(\env -> Map.insert ident (TyFun argTypes typ) env)
+                modify(\env -> Map.insert ident (TyFun argTypes retType) env)
+
+            block @ (Block2 _ (ETyped _ bodyType)) <-
+                runInLocalEnv (mapM (typeckEvalFuncArg) args >> typeckBlock block) =<< get
 
             traceShowM =<< get
 
-            if bodyType == typ then return (SFuncRet ident args typ block)
-                               else throwError $ mismatch ident "Mismatched types in function" typ bodyType
+            if bodyType == retType then return (SFuncRet ident args retType block)
+                                   else throwError $ mismatch ident "Mismatched types in function" retType bodyType
 
 typeckStm stm @ (SStruct ident args) = do
     -- traceShowM =<< get
@@ -138,55 +144,42 @@ typeckExpExpect expected expr = do
     if typ /= expected then throwError $ mismatch expr "mismatched operand type" expected typ
                        else return typedExpr
 
-ti :: Exp -> StateT TypeEnv (Either String) (Exp, Type)
+binOp :: (Exp -> Exp -> Exp) -> Exp -> Exp -> Type -> Type -> TypeCheckMonad (Exp, Type)
+binOp constr left right inType outType = do
+    expr <- constr <$> typeckExpExpect inType left <*> typeckExpExpect inType right
+    return (expr, outType)
+unOp :: (Exp -> Exp) -> Exp -> Type -> Type -> TypeCheckMonad (Exp, Type)
+unOp constr expr inType outType = do
+    expr <- constr <$> typeckExpExpect inType expr
+    return (expr, outType)
 
+ti :: Exp -> StateT TypeEnv (Either String) (Exp, Type)
 ti (EAssign ident expr) = do
     expr <- typeckExp expr
     return (EAssign ident expr, TyUnit)
 
-ti (EOr left right) = do
-    expr <- EOr <$> typeckExpExpect TyBool left <*> typeckExpExpect TyBool right
-    return (expr, TyBool)
-ti (EAnd left right) = do
-    expr <- EAnd <$> typeckExpExpect TyBool left <*> typeckExpExpect TyBool right
-    return (expr, TyBool)
+ti (EOr left right) = binOp EOr left right TyBool TyBool
+ti (EAnd left right) = binOp EAnd left right TyBool TyBool
 ti op @ (EEq left right) = do
     lExp @ (ETyped _ lType) <- typeckExp left
     rExp @ (ETyped _ rType) <- typeckExp right
     if lType /= rType then throwError $ mismatch op "`=` operands must be same type" lType rType
-                      else return $ (EEq lExp rExp, lType)
+                      else return $ (EEq lExp rExp, TyBool)
 
 ti (ENEq left right) = ti (ENot (EEq left right)) -- TODO: Check nesting of ETypes
-ti (ELess left right) = do
-    expr <- ELess <$> typeckExpExpect TyInt left <*> typeckExpExpect TyInt right
-    return (expr, TyBool)
-ti (ELEq left right) = do
-    expr <- ELEq <$> typeckExpExpect TyInt left <*> typeckExpExpect TyInt right
-    return (expr, TyBool)
-ti (EGreat left right) = do
-    expr <- EGreat <$> typeckExpExpect TyInt left <*> typeckExpExpect TyInt right
-    return (expr, TyBool)
-ti (EGEq left right) = do
-    expr <- EGEq <$> typeckExpExpect TyInt left <*> typeckExpExpect TyInt right
-    return (expr, TyBool)
-ti (EPlus left right) = do
-    expr <- EPlus <$> typeckExpExpect TyInt left <*> typeckExpExpect TyInt right
-    return (expr, TyInt)
-ti (EMinus left right) = do
-    expr <- EMinus <$> typeckExpExpect TyInt left <*> typeckExpExpect TyInt right
-    return (expr, TyInt)
-ti (EMul left right) = do
-    expr <- EMul <$> typeckExpExpect TyInt left <*> typeckExpExpect TyInt right
-    return (expr, TyInt)
-ti (EDiv left right) = do
-    expr <- EDiv <$> typeckExpExpect TyInt left <*> typeckExpExpect TyInt right
-    return (expr, TyInt)
-ti (ENot expr) = do
-    expr' <- ENot <$> typeckExpExpect TyBool expr
-    return (expr', TyBool)
-ti (ENeg expr) = do
-    expr' <- ENeg <$> typeckExpExpect TyInt expr
-    return (expr', TyInt)
+
+ti (ELess left right) = binOp ELess left right TyInt TyBool
+ti (ELEq left right) = binOp ELEq left right TyInt TyBool
+ti (EGreat left right) = binOp ELess left right TyInt TyBool
+ti (EGEq left right) = binOp EGEq left right TyInt TyBool
+
+ti (EPlus left right) = binOp EPlus left right TyInt TyInt
+ti (EMinus left right) = binOp EMinus left right TyInt TyInt
+ti (EMul left right) = binOp EMul left right TyInt TyInt
+ti (EDiv left right) = binOp EDiv left right TyInt TyInt
+
+ti (ENot expr) = unOp ENot expr TyBool TyBool
+ti (ENeg expr) = unOp ENeg expr TyInt TyInt
 
 ti lit @ (ELit LiteralUnit) = return (lit, TyUnit)
 ti lit @ (ELit (LiteralBoolean _)) = return (lit, TyBool)
@@ -202,7 +195,6 @@ ti (EStruct ident members) = do
     env <- get
     (TyStruct _ declaredMembers) <- let errMsg = ("`" ++ (printTree ident) ++ "` is not a struct") in
         liftEither $ maybeToEither errMsg (Map.lookup ident env)
-    -- (TyStruct _ declaredMembers) <- typeckType $ TyIdent ident
 
     checkedMembers <- sequence $ map (\(MemberExp ident e) -> mapStateT (liftM (\(val,s) -> ((ident,val),s))) $ typeckExp e) members
     typedMembers <- return $ map (\(ident, ETyped expr ty) -> (ident, ty)) checkedMembers
@@ -261,7 +253,8 @@ ti (EAnonFun (AnonArgs args block)) = do
         let typeckArgs x = (sequence $ map (\(TypedIdent i t) -> mapStateWithIdent i $ typeckType t) x) in do
             args <- typeckArgs args
 
-            block @ (Block2 _ (ETyped _ bodyType)) <- runInLocalEnv (typeckBlock block) =<< get
+            block @ (Block2 _ (ETyped _ bodyType)) <-
+                runInLocalEnv (mapM (typeckEvalFuncArg) args >> typeckBlock block) =<< get
 
             let argTypes = map(\(TypedIdent ident typ) -> typ) args in
                 return $ (EAnonFun (AnonArgs args block), TyFun argTypes bodyType)

@@ -33,6 +33,7 @@ testCases =
       , SFunc (Ident "myFunc") [TypedIdent (Ident "arg") $ TyIdent (Ident "MyStruct")] (Block1 []) -- fn myFunc(arg: MyStruct) {}
       ]
     , [SFuncRet (Ident "myFunc") [] TyInt (Block2 [] (ELit $ LiteralInteger 42))] -- fn myFunc() -> int { 42 }
+    , [SFuncRet (Ident "myFunc") [] TyInt (Block2 [SLet (Ident "a") (EIdent (Ident "myFunc"))] $ int 42)] -- fn myFunc() -> int { 42 }
     , [SBlockExp (EIfElse true (Block1 []) (Block2 [] unit))] -- if true {} else { () }
     , [SBlockExp (EIfElse false (Block2 [] $ int 42) (Block2 [] $ int 28))] -- if false { 42 } else { 28 }
     , [SBlockExp (EWhile true (Block2 [] $ int 42))] -- while true { 42 }

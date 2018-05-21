@@ -5,7 +5,7 @@ let fun = || { a = 5; a };
 print(fun());
 print(a);
 
-fn returns_func() {
+fn returns_func() -> Fn() -> () {
     || { print("Hello there!"); }
 }
 
@@ -13,7 +13,7 @@ let woah = returns_func();
 
 woah();
 
-fn returns_closure() {
+fn returns_closure() -> Fn() -> () {
     let a = 5;
     || { a = a - 1; print("> Counter in closure"); print(a); }
 }

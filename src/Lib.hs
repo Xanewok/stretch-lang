@@ -18,8 +18,12 @@ import BNFC.PrintStretch
 import Typeck(typeck)
 
 interpret :: Program -> IO ()
-interpret (ProgramEntry stmts) =
-    evalStateT (interpretStmts stmts) initialState
+interpret program = do
+    typedStmts <- case typeck program of
+        Left msg -> fail $ "typeck error: " ++ msg
+        Right (ProgramEntry stmts) -> return stmts
+
+    evalStateT (interpretStmts typedStmts) initialState
 
 interpretStmts :: [Stm] -> StateIO ()
 interpretStmts stmts = mapM_ evalStmt stmts
@@ -51,7 +55,7 @@ instance Eq Value where
     Boolean b1 == Boolean b2 = b1 == b2
     Int i1 == Int i2 = i1 == i2
     Str s1 == Str s2 = s1 == s2
-    Record r1 == Record r2 = r1 == r2 -- TODO: Structural equivalence? Need to include type system info
+    Record r1 == Record r2 = r1 == r2 -- Types are checked during typeck
 
 instance Show Value where
     show (Unit inner) =  show inner
@@ -98,8 +102,6 @@ runInLocalEnv st initial = do
 evalStmt :: Stm -> StateIO ()
 
 evalStmt (SFunc ident args block) = do
-    -- TODO: Introduce new type definition for the function
-
     -- Crucial for implementing recursion - allocate an identifier in the env
     -- first for ourself, so the stored function value can refer to itself
     loc <- allocWithVal ident (Unit ())
@@ -111,7 +113,7 @@ evalStmt (SFunc ident args block) = do
                 (env, store', fields)
         )
 
--- TODO: Implement and verify type mismatch
+-- Type mismatch detected during typeck
 evalStmt (SFuncRet ident args typ block) = evalStmt (SFunc ident args block)
 evalStmt stm @ (SStruct ident args) = do
     (_, _, fields) <- get
@@ -141,7 +143,7 @@ evalStmt stm @ (SLet ident expr) = do
     liftIO $ debugPutStrLn $ show env
     liftIO $ debugPutStrLn $ show store
 
--- TODO: Check type mismatch
+-- Type mismatch detected during typeck
 evalStmt (SLetType ident typ expr) = evalStmt (SLet ident expr)
 
 evalStmt (SBlockExp blockExp) = evalBlockExp blockExp >> return ()
@@ -177,7 +179,6 @@ evalBlockExp (EIfElse expr ifBlock elseBlock) = do
     case value of
         Boolean val -> evalBlock $ if val then ifBlock else elseBlock
         _ -> fail "mismatched types: `if` guard clause not a boolean"
--- TODO: reset block env after quitting blocks
 evalBlockExp while @ (EWhile expr block) = do
     value <- evalExp expr
     case value of
@@ -353,7 +354,7 @@ evalExp (ECall funcExp args) = do
         f @(Function _ _ _) -> return f
         _ -> fail $ "Expression " ++ (show funcExp) ++ " is not a function"
 
-    -- TODO: Check types of called function and arguments
+    -- Function argument type checking done during typeck
     evaluatedArgs <- mapM evalExp args
 
     let args = zip evaluatedArgs formalArgs in
@@ -387,9 +388,10 @@ evalExp (EField expr ident) = do
         _ -> fail $ (show expr) ++ " is not a record"
 evalExp (EBlockExp blockExp) = evalBlockExp blockExp
 
--- TODO Check types, make sure this is okay
 evalExp (EAnonFun (AnonEmpty block)) = evalExp (EAnonFun (AnonArgs [] block))
 evalExp (EAnonFun (AnonArgs args block)) = do
     (env, _, _) <- get
 
     return $ Function env args block
+
+evalExp (ETyped expr _) = evalExp expr
