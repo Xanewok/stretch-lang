@@ -63,6 +63,7 @@ testCases =
     , [SExp (EPrint $ int 42)] -- print(42);
     , [SExp (EOr true false)] -- true || false
     , [SExp (ENeg (int 43))] -- let a: int = -43;
+    , [SLet (Ident "a") (EBlockExp (EBlock (Block2 [] $ int 43)))]
     ]
 
 badCases :: [Program]

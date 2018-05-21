@@ -52,7 +52,7 @@ typeckStm (SFunc ident args block) =
     -- Functions have implicit return value ()
     typeckStm (SFuncRet ident args TyUnit block)
 
-typeckStm (SFuncRet ident @ (Ident funcName) args retType block) =
+typeckStm (SFuncRet ident args retType block) =
     let mapStateWithIdent ident = mapStateT (liftM (\(typ, s) -> ((TypedIdent ident typ),s))) in
         let typeckArgs x = (sequence $ map (\(TypedIdent i t) -> mapStateWithIdent i $ typeckType t) x) in do
             -- Check args and return type before introducing the actual function type itself
@@ -127,12 +127,13 @@ typeckBlockExpr blk @ (EIfElse expr trueBlock falseBlock) = do
 
 typeckBlockExpr (EWhile expr block) = EWhile <$> checkGuardClause expr <*> typeckBlock block
 
--- TODO: Evaluate inner statements in a local env
 typeckBlock :: TypeCheck Block
 -- Add implicit () return value for blocks without last expression
 typeckBlock (Block1 stmts) = typeckBlock (Block2 stmts (ELit LiteralUnit))
-typeckBlock (Block2 stmts expr) =
-    Block2 <$> (mapM typeckStm stmts) <*> typeckExp expr
+typeckBlock (Block2 stmts expr) = do
+    -- Evaluate trailing expression in a local env (can depend on a statement in an inner block)
+    typedExpr <- runInLocalEnv (mapM (typeckStm) stmts >> typeckExp expr) =<< get
+    return (Block2 stmts typedExpr)
 
 typeckType :: TypeCheck Type
 typeckType (TyIdent ident @ (Ident identStr)) = do
