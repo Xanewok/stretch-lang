@@ -23,11 +23,16 @@ type TypeCheck a = a -> TypeCheckMonad a
 
 type TypeEnv = Map Ident Type
 
+errorIn :: Print a => a -> String -> String
+errorIn inside msg =
+    "In `" ++ (printTree inside) ++ "`:\n" ++
+    "  " ++ msg
+
 mismatch :: Print a => a -> String -> Type -> Type -> String
 mismatch inside msg expected got =
     "In `" ++ (printTree inside) ++ "`:\n" ++
-    " " ++ msg ++ "\n" ++
-    " expected `" ++ (show expected) ++ "`, got `" ++ (show got) ++ "`"
+    "  " ++ msg ++ "\n" ++
+    "  expected `" ++ (show expected) ++ "`, got `" ++ (show got) ++ "`"
 
 -- Given an initial state, runs a StateT in a local variable binding environment
 runInLocalEnv :: TypeCheckMonad a -> TypeEnv -> TypeCheckMonad a
@@ -130,7 +135,7 @@ typeckBlock (Block2 stmts expr) =
     Block2 <$> (mapM typeckStm stmts) <*> typeckExp expr
 
 typeckType :: TypeCheck Type
-typeckType ty @ (TyIdent ident @ (Ident identStr)) = do
+typeckType (TyIdent ident @ (Ident identStr)) = do
     env <- get
     case Map.lookup ident env of
         Just x -> return x
@@ -166,7 +171,7 @@ ti op @ (EEq left right) = do
     if lType /= rType then throwError $ mismatch op "`=` operands must be same type" lType rType
                       else return $ (EEq lExp rExp, TyBool)
 
-ti (ENEq left right) = ti (ENot (EEq left right)) -- TODO: Check nesting of ETypes
+ti (ENEq left right) = ti (ENot (EEq left right))
 
 ti (ELess left right) = binOp ELess left right TyInt TyBool
 ti (ELEq left right) = binOp ELEq left right TyInt TyBool
@@ -191,7 +196,7 @@ ti (EIdent ident @ (Ident var)) = do
     typ <- liftEither $ maybeToEither ("Unbound variable `" ++ var ++ "`") (Map.lookup ident env)
     return (EIdent ident, typ)
 
-ti (EStruct ident members) = do
+ti str @ (EStruct ident members) = do
     env <- get
     (TyStruct _ declaredMembers) <- let errMsg = ("`" ++ (printTree ident) ++ "` is not a struct") in
         liftEither $ maybeToEither errMsg (Map.lookup ident env)
@@ -203,7 +208,8 @@ ti (EStruct ident members) = do
 
     let a = Map.fromList typedMembers in
         let b = Map.fromList declaredMembers in
-            if a /= b then throwError "mismatched struct args"
+            if a /= b then throwError (errorIn str "Mismatched struct args:\n" ++
+                    "  expected `" ++ (show b) ++ "`\n  found `" ++ (show a) ++ "`")
                 else let initMembers = map (\(i, e) -> MemberExp i e) checkedMembers in
                     let formalArgs = map (\(i, ty) -> TypedIdent i ty) typedMembers in
                         return $ (EStruct ident initMembers, TyStruct ident formalArgs)
@@ -227,11 +233,13 @@ ti (EPrint expr) = do
     typedExpr @ (ETyped _ typ) <- typeckExp expr
     return $ (EPrint typedExpr, TyUnit)
 
-ti (EField expr ident) = do
+ti e @ (EField expr ident) = do
     typedExpr @ (ETyped _ typ) <- typeckExp expr
 
     TypedIdent _ fieldType <- case typ of
-        TyStruct _ args -> liftEither $ maybeToEither "no such field on struct" (List.find (\(TypedIdent iden ty) -> iden == ident) args)
+        TyStruct _ args -> liftEither $ maybeToEither
+            (errorIn e "No such field `" ++ (printTree ident) ++ "` on struct")
+            (List.find (\(TypedIdent iden ty) -> iden == ident) args)
         _ -> throwError $ "`" ++ (printTree expr) ++ "` is not a struct"
 
     return (EField typedExpr ident, fieldType)

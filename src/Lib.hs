@@ -20,7 +20,7 @@ import Typeck(typeck)
 interpret :: Program -> IO ()
 interpret program = do
     typedStmts <- case typeck program of
-        Left msg -> fail $ "typeck error: " ++ msg
+        Left msg -> fail $ "typeck error: \n" ++ msg
         Right (ProgramEntry stmts) -> return stmts
 
     evalStateT (interpretStmts typedStmts) initialState
@@ -56,6 +56,7 @@ instance Eq Value where
     Int i1 == Int i2 = i1 == i2
     Str s1 == Str s2 = s1 == s2
     Record r1 == Record r2 = r1 == r2 -- Types are checked during typeck
+    _ == _ = False
 
 instance Show Value where
     show (Unit inner) =  show inner
