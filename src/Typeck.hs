@@ -74,6 +74,7 @@ typeckStm (SFuncRet ident args retType block) =
 
 typeckStm stm @ (SStruct ident args) = do
     -- traceShowM =<< get
+    checkedArgs <- mapM typeckType $ map (\(TypedIdent _ ty) -> ty) args
 
     modify(\env -> Map.insert ident (TyStruct ident args) env)
 
