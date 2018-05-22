@@ -2,6 +2,7 @@ import BNFC.ErrM(Err(Ok, Bad))
 import BNFC.AbsStretch
 import BNFC.ParStretch
 import BNFC.LexStretch
+import BNFC.PrintStretch
 
 import System.FilePath.Glob
 
@@ -114,29 +115,21 @@ testProg x = case typeck x of
 
 processTest :: FilePath -> ExceptT String IO ()
 processTest file = do
-  liftIO $ putStrLn $ "Processing `" ++ (file) ++ "`..."
+  liftIO $ putStrLn $ "Processing `" ++ file ++ "`..."
 
   contents <- liftIO $ readFile file
-  program <- return $ lexAndParse contents >>= typeck
-  -- program <- interpret program
-    -- Left msg -> throwError msg
-    -- Right prog -> return prog
+  program <- liftEither $ lexAndParse contents >>= typeck
 
-  liftIO $ putStrLn $ (show program)
+  liftIO $ putStrLn $ printTree program
 
 main :: IO ()
+-- main = putStrLn "" >> mapM_ testProg testCases >> putStrLn "Bad cases:" >> (mapM_ testProg badCases)
 main = do
-  files <- glob "good/*.str"
-  -- files <- return $ map dropExtension files
-
-  runExceptT $ mapM_ processTest files
-
-  files <- glob "bad/*.str"
-  result <- runExceptT $ mapM_ processTest files
+  good <- glob "good/typeck/*.str"
+  bad <- glob "bad/typeck/*.str"
+  result <- runExceptT $ mapM_ processTest (good ++ bad)
   case result of
     Left msg -> putStrLn $ "Encountered an error: " ++ msg
     Right _ -> return ()
 
   return ()
-  -- mapM_ processTest files
--- main = putStrLn "" >> mapM_ testProg testCases >> putStrLn "Bad cases:" >> (mapM_ testProg badCases)

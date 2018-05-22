@@ -22,7 +22,7 @@ cp README_pl.md igor_matuszewski/README
 cp -R good/ igor_matuszewski/
 cp -R bad/ igor_matuszewski/
 
-cp test.sh igor_matuszewski/
+cp integration-tests.sh igor_matuszewski/
 
 # Generate a Makefile to be used on a `students` university machine
 rm Makefile 2>/dev/null

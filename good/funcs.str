@@ -30,7 +30,7 @@ fn accepts_func(func: Fn() -> ()) {
     func();
 }
 
-accepts_func(defined); // This works, too!
+accepts_func(defined); // "This works, too!"
 
 fn accepts_lambda(lambda: Fn(int) -> int) {
     print(lambda(22));
@@ -50,3 +50,18 @@ let tick = return_countdown();
 print(tick()); // 2
 print(tick()); // 1
 print(tick()); // 0
+
+fn returns_nested() -> Fn(int) -> int {
+    fn nested(arg: int) -> int {
+        print(arg);
+        42
+    }
+
+    let shadowed = nested;
+    let nested = 3;
+
+    shadowed
+}
+
+let func = returns_nested();
+func(5);

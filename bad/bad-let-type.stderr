@@ -1,0 +1,5 @@
+stretchi: user error (typeck error: 
+In `let a : () = 5 ;
+`:
+  Mismatched types
+  expected `TyUnit`, got `TyInt`)

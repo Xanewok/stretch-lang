@@ -1,0 +1,1 @@
+let a: int = while true { 4 };

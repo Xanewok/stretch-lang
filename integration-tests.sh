@@ -11,7 +11,13 @@ eval $BUILD
 tmp_out=$(mktemp)
 tmp_err=$(mktemp)
 
-for f in {good,bad}/*.str; do
+# typeck tests are tested by test/Spec.hs
+for f in {good,bad}/{,parse/}*.str; do
+	# Skip non-files
+	if [ ! -f ${f} ]; then
+		continue
+	fi
+
 	# Generate expected test data if ran with `./test prepare`
 	if [ "$1" = "prepare" ]; then
 		eval $INTERP $f 1>${f%str}stdout 2>${f%str}stderr
@@ -19,7 +25,7 @@ for f in {good,bad}/*.str; do
 	fi
 
 	# Perform checks only when there is expected test data
-	if [ ! -f ${f%str}stdout ] || [ ! -f ${f%str}stderr ]; then
+	if [ ! -f ${f%str}stdout ] && [ ! -f ${f%str}stderr ]; then
 		echo -e "\e[1mSkipping \e[0m$f..."
 		continue
 	else
